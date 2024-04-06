@@ -7,7 +7,7 @@ class ConcertSerializer(serializers.ModelSerializer):
     class Meta:
         model = Concert
         fields = "__all__"
-
+# important for creating concert
 class CreateConcertSerializer(serializers.ModelSerializer):
     class Meta:
         model = Concert
