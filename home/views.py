@@ -1,25 +1,26 @@
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Concert,Customer
 from .serializers import ConcertSerializer,CreateConcertSerializer,CreateCustomerSerializer,CustomerSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate, login
 from rest_framework.generics import ListAPIView,CreateAPIView
 from rest_framework import viewsets
 from django.utils import timezone
 from datetime import timedelta,datetime
 from rest_framework import filters  
-from rest_framework.parsers import MultiPartParser
+from rest_framework.authtoken.models import Token
 
-
+#for updating put
+#from rest_framework.parsers import MultiPartParse
 
 viewsets.ModelViewSet
 
 #generic views
 class ListConcertView(ListAPIView):
     serializer_class = ConcertSerializer
-    parser_classes = [MultiPartParser]
+   # parser_classes = [MultiPartParser]
     def get_queryset(self):
         timeframe = self.request.query_params.get('timeframe')
 
@@ -75,7 +76,6 @@ class ConcertSearchView(ListAPIView):
     filter_backends = [filters.SearchFilter]
     search_fields = ['$a_name']
 
-    
 class CreateListConcertView(CreateAPIView):
     queryset = Concert.objects.all()
     serializer_class = CreateConcertSerializer
@@ -121,34 +121,70 @@ class ConcertView(APIView):
 
 
 
-
-@api_view(['GET', 'POST'])
-def Customer_View(request):
-    if request.method == "GET":
-        customers = Customer.objects.all()  
-        serializer = CustomerSerializer(customers, many=True)
-        
-        return Response(serializer.data)
-    
-    if request.method == "POST":
+class CustomerView(APIView):
+    def post(self,request):
         serializer = CreateCustomerSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-@api_view(['PUT','DELETE'])
-def Update_and_DELETE_Customer(request, id):
-    if request.method == "PUT":
-        Customer_obj = Customer.objects.get(cu_id=id)
-        serializer = CustomerSerializer(instance=Customer_obj,data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+    def get(self, request, id=None):  
+        if id is not None:
         
-        return Response(serializer.data,status=status.HTTP_200_OK)
-    if request.method == "DELETE":
-        Customer_obj = Customer.objects.get(cu_id=id)
-        Customer_obj.delete()
+            customer = Customer.objects.get(cu_id=id)
+            serializer = CustomerSerializer(customer)
+            return Response(serializer.data)
+        else:
+            # List all concerts
+            all_Customer = Customer.objects.all()
+            serializer = CustomerSerializer(all_Customer, many=True)
+            return Response(serializer.data)
+
+
+
+    def put(self,request,id): 
+           customers_obj = Customer.objects.get(cu_id=id)
+           serializer = CreateCustomerSerializer(instance=customers_obj,data=request.data)
+           serializer.is_valid(raise_exception=True)
+           serializer.save()
+           return Response(serializer.data)
+
+
+
+    def delete(self,request,id):
+        customers_obj = Customer.objects.get(cu_id=id)
+        customers_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
- 
+
+    
+class CreateCustomerView(CreateAPIView):
+    queryset = Concert.objects.all()
+    serializer_class = CreateCustomerSerializer
+
+
+class RegisterAPIView(APIView):
+    def post(self, request):
+        serializer = CustomerSerializer(data=request.data)
+        if serializer.is_valid():
+            customer = serializer.save()
+
+            # Assuming you have a user field in your Customer model
+            # If not, adjust accordingly to create a user object
+            user = customer.user  # Assuming user is the OneToOneField to the Django User model
+
+            # Create a token for the user
+            token = Token.objects.create(user=user)
+
+            # Serialize the customer data
+            json = serializer.data
+
+            # Add the token to the response data
+            json['token'] = token.key
+
+            return Response(json, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
         
 

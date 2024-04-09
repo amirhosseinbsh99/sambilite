@@ -3,7 +3,7 @@ from .models import Customer,Concert
 
 # Register your models here.
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ("cu_name","cu_phonenumber")
+    list_display = ("cu_name","cu_phonenumber","cu_location")
 
 class ConcertAdmin(admin.ModelAdmin):
     list_display = ("co_name","co_type")

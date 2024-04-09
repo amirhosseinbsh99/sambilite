@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 ]
 
 
-
+#LOGIN_REDIRECT_URL = 'Dashboard'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
