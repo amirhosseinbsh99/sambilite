@@ -1,6 +1,8 @@
 from rest_framework.response import Response
-from .models import Concert,Customer
-from .serializers import ConcertSerializer,CreateConcertSerializer,CreateCustomerSerializer,CustomerSerializer
+from .models import Concert
+from accounts.models import Customer
+from .serializers import ConcertSerializer,CreateConcertSerializer
+from accounts.serializers import CreateCustomerSerializer,CustomerSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -121,68 +123,8 @@ class ConcertView(APIView):
 
 
 
-class CustomerView(APIView):
-    def post(self,request):
-        serializer = CreateCustomerSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
-
-    def get(self, request, id=None):  
-        if id is not None:
-        
-            customer = Customer.objects.get(cu_id=id)
-            serializer = CustomerSerializer(customer)
-            return Response(serializer.data)
-        else:
-            # List all concerts
-            all_Customer = Customer.objects.all()
-            serializer = CustomerSerializer(all_Customer, many=True)
-            return Response(serializer.data)
 
 
-
-    def put(self,request,id): 
-           customers_obj = Customer.objects.get(cu_id=id)
-           serializer = CreateCustomerSerializer(instance=customers_obj,data=request.data)
-           serializer.is_valid(raise_exception=True)
-           serializer.save()
-           return Response(serializer.data)
-
-
-
-    def delete(self,request,id):
-        customers_obj = Customer.objects.get(cu_id=id)
-        customers_obj.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    
-class CreateCustomerView(CreateAPIView):
-    queryset = Concert.objects.all()
-    serializer_class = CreateCustomerSerializer
-
-
-class RegisterAPIView(APIView):
-    def post(self, request):
-        serializer = CustomerSerializer(data=request.data)
-        if serializer.is_valid():
-            customer = serializer.save()
-
-            # Assuming you have a user field in your Customer model
-            # If not, adjust accordingly to create a user object
-            user = customer.user  # Assuming user is the OneToOneField to the Django User model
-
-            # Create a token for the user
-            token = Token.objects.create(user=user)
-
-            # Serialize the customer data
-            json = serializer.data
-
-            # Add the token to the response data
-            json['token'] = token.key
-
-            return Response(json, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
