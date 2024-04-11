@@ -1,11 +1,11 @@
 from django.urls import path
-from .views import CustomerLoginAPIView ,CustomerView,CreateCustomerView
+from .views import CustomerLoginAPIView ,CustomerView,CustomerRegister
 
 
 
 urlpatterns = [
     path('login/',CustomerLoginAPIView.as_view() ,name='CustomerLogin' ),
-   # path('registerrr/',CreateCustomerView.as_view(),name='CreateCustomerView'),
+    path('register/',CustomerRegister.as_view(),name='CustomerRegister'),
         
                              #after front given ###
     path('Customer/', CustomerView.as_view(), name='CustomerView'),

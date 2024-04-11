@@ -2,17 +2,17 @@ from rest_framework.response import Response
 from .models import Concert
 from accounts.models import Customer
 from .serializers import ConcertSerializer,CreateConcertSerializer
-from accounts.serializers import CreateCustomerSerializer,CustomerSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate, login
 from rest_framework.generics import ListAPIView,CreateAPIView
 from rest_framework import viewsets
 from django.utils import timezone
 from datetime import timedelta,datetime
 from rest_framework import filters  
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
+
 
 #for updating put
 #from rest_framework.parsers import MultiPartParse
@@ -120,6 +120,9 @@ class ConcertView(APIView):
         concerts_obj = Concert.objects.get(co_id=id)
         concerts_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
 
 
 

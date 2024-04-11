@@ -3,23 +3,28 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import Customer
-from .serializers import CreateCustomerSerializer,CustomerSerializer
+from .serializers import CreateCustomerSerializer,CustomerSerializer,CustomerRegiserSerializer,CustomerLoginSerializer
+from rest_framework.decorators import api_view
+from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView
 
+
 class CustomerLoginAPIView(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         cu_phonenumber = request.data.get('cu_phonenumber')
-        password = request.data.get('password')
+        cu_password = request.data.get('cu_password')
 
-        # Authenticate the customer
-        user = authenticate(cu_phonenumber=cu_phonenumber, password=password)
+        # Retrieve the user based on the phone number
+        user = Customer.objects.filter(cu_phonenumber=cu_phonenumber).first()
 
-        if user is not None:
+        # If user exists, verify the password
+        if user is not None and user.check_password(cu_password):
             # Authentication successful
-            return Response({'message': 'Login successful', 'customer_id': user.cu_id}, status=status.HTTP_200_OK)
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key}, status=status.HTTP_200_OK)
         else:
             # Authentication failed
-            return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         
 class CustomerView(APIView):
     def post(self,request):
@@ -56,7 +61,28 @@ class CustomerView(APIView):
         customers_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    
+
 class CreateCustomerView(CreateAPIView):
     queryset = Customer.objects.all()
     serializer_class = CreateCustomerSerializer
+
+
+class CustomerRegister(APIView):
+    def post(self, request):
+        serializer = CustomerRegiserSerializer(data=request.data)
+        data = {}
+
+        if serializer.is_valid():
+            account = serializer.save()
+
+            data['response'] = 'اکانت شما با موفقیت ایجاد شد'
+            data['name'] = account.cu_name
+            data['email'] = account.cu_email
+
+            token, _ = Token.objects.get_or_create(user=account)
+            data['token'] = token.key
+        else:
+            data = serializer.errors
+
+        return Response(data)
+
