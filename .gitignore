@@ -1,4 +1,4 @@
 ## django ##
+venv/
 db.sqlite3
-venv
-
+data/

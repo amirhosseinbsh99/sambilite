@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CustomerLoginAPIView ,CustomerView,CustomerRegister
+from .views import CustomerLoginAPIView ,CustomerView,CustomerRegister,CreateCustomerView
 
 
 
@@ -10,5 +10,5 @@ urlpatterns = [
                              #after front given ###
     path('Customer/', CustomerView.as_view(), name='CustomerView'),
     path('Customer/<int:id>/', CustomerView.as_view(), name='EditCustomerView'),
-
+    path('Customer/Create', CreateCustomerView.as_view(), name='CreateCustomerView')
 ]

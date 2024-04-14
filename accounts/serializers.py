@@ -17,7 +17,7 @@ class CreateCustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields=['cu_name','cu_phonenumber','cu_email','cu_location']
+        fields=['cu_name','cu_phonenumber','cu_location','password']
 
 class CustomerRegiserSerializer(serializers.ModelSerializer):
     cu_password2 = serializers.CharField(style={'input_type':'password'},write_only=True)
@@ -40,12 +40,40 @@ class CustomerRegiserSerializer(serializers.ModelSerializer):
 
         if Customer.objects.filter(cu_phonenumber = self.validated_data['cu_phonenumber']).exists():
             raise serializers.ValidationError({"Error":"شماره شما قبلا ثبت شده است"})
-        #if need space phonenumber = delete
-        account = Customer (cu_email = self.validated_data['cu_email'] , cu_name = self.validated_data['cu_name'] , cu_phonenumber = self.validated_data['cu_phonenumber'], username = self.validated_data['cu_phonenumber'],password = self.validated_data['cu_password'])
-        account.set_password (cu_password)
-        account.save()
+        else:
 
-        return account
+            try:
+                token2 = random.randint(10000, 99999)
+
+
+                api = KavenegarAPI('7937386A425358714D3072664F59414B4D79416D6E444C534C55357A724E33395258437661466F34727A343D')
+                phone=Customer.cu_phonenumber
+
+                params = {
+                'token': token2,
+                'receptor':'',
+                'template': 'fayateachh',
+                    'type': 'sms'
+                }
+                response = api.verify_lookup(params)
+                print(response)
+            except APIException as e: 
+                print(e)
+            except HTTPException as e: 
+                print(e)
+
+                account = account.objects.create_user(username=Customer.cu_phonenumber,token_send=token2)
+                return redirect('accounts:kave_negar_token_send')
+
+    def kave_negar_token_send(self):
+
+        sms_code = self.validated_data['sms_code']
+        if Customer.objects.filter(token_send=sms_code).exists():
+            Customer.objects.filter(token_send=sms_code).delete()
+
+            account = Customer (cu_email = self.validated_data['cu_email'] , cu_name = self.validated_data['cu_name'] , cu_phonenumber = self.validated_data['cu_phonenumber'], username = self.validated_data['cu_phonenumber'])
+            account.set_password (cu_password)
+            account.save()
 
 class CustomerLoginSerializer(serializers.Serializer):
     cu_phonenumber = serializers.CharField(max_length=11)
