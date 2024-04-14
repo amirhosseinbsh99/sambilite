@@ -20,6 +20,7 @@ class Concert(models.Model):
     co_address = models.CharField(max_length=250, blank=True)
     co_seats = models.IntegerField(blank=True)
     co_image = models.ImageField(upload_to = 'blog/' , null = True , blank = True)
+    co_location = models.CharField(max_length=40)
     a_name = models.CharField(max_length=100)
     co_status = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
 

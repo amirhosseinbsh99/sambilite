@@ -13,6 +13,7 @@ from rest_framework import filters
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 import requests
+import json
 from django.http import request
 
 
@@ -25,11 +26,11 @@ viewsets.ModelViewSet
 #generic views
 class ListConcertView(ListAPIView):
     def get(self, request):
-        user_ip = request.META.get('REMOTE_ADDR')  # Get user's IP address
-        res = requests.get(f'http://ip-api.com/json/{user_ip}')  # Send request to IP API
-        location_data = res.json()  # Extract JSON data from response
+        res = requests.get('http://ip-api.com/json/46.182.32.18')  # Send request to IP API
+        location_data = res.json() # Extract JSON data from response
+        city = location_data.get('city')  # Extract city from location data
+        return Response({'city': city})
 
-        return Response(location_data)
     serializer_class = ConcertSerializer
    # parser_classes = [MultiPartParser]
     def get_queryset(self):
