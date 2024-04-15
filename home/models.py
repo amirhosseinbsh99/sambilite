@@ -34,8 +34,8 @@ class Seat(models.Model):
     SEAT_STATUS_CHOICES = [
         ('Empty', 'Empty'),
         ('Reserved', 'Reserved'),
-        ('Reserving', 'Reserving')
-    
+        ('Reserving', 'Reserving'),
+        #cannot buy
     ]
     SEAT_AREA_CHOICES = [
         ('VIP', 'VIP'),
@@ -49,7 +49,8 @@ class Seat(models.Model):
     se_number = models.IntegerField(blank=True)
     se_status = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
     se_price = models.DecimalField(max_digits=10,decimal_places=0)
-
+    se_price_range = models.DecimalField(max_digits=10,decimal_places=0)
+#price range 
 class Sans(models.Model):
     sa_id = models.AutoField(primary_key=True)
     sa_number = models.IntegerField(blank=True)
