@@ -17,7 +17,6 @@ import json
 from django.http import request
 
 
-
 #for updating put
 #from rest_framework.parsers import MultiPartParse
 
@@ -25,11 +24,31 @@ viewsets.ModelViewSet
 
 #generic views
 class ListConcertView(ListAPIView):
+
     def get(self, request):
-        res = requests.get('http://ip-api.com/json/46.182.32.18')  # Send request to IP API
-        location_data = res.json() # Extract JSON data from response
-        city = location_data.get('city')  # Extract city from location data
-        return Response({'city': city})
+        ip_response = requests.get('https://api.ipify.org/?format=json')
+        ip_data = ip_response.json()
+        myip = ip_data.get('ip') 
+
+        location_response = requests.get(f'http://ip-api.com/json/%7Bmyip%7D')
+        location_data = location_response.json()
+        city = location_data.get('city')
+
+   # Filter concerts based on the city
+        concerts = Concert.objects.filter(co_location=city)
+        if not concerts.exists():
+            # If no concerts found, fetch all concerts
+            concerts = Concert.objects.all()
+
+        # Serialize the filtered concerts
+        serializer = ConcertSerializer(concerts, many=True)
+
+        return Response(serializer.data)
+    # def get(self, request):
+    #     res = requests.get('http://ip-api.com/json/46.182.32.18')  # Send request to IP API
+    #     location_data = res.json() # Extract JSON data from response
+    #     city = location_data.get('city')  # Extract city from location data
+    #     return Response({'city': city})
 
     serializer_class = ConcertSerializer
    # parser_classes = [MultiPartParser]
