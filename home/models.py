@@ -35,6 +35,7 @@ class Seat(models.Model):
         ('Empty', 'Empty'),
         ('Reserved', 'Reserved'),
         ('Reserving', 'Reserving'),
+        ('noy_buyable','noy_buyable')
         #cannot buy
     ]
     SEAT_AREA_CHOICES = [

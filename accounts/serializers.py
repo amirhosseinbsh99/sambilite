@@ -90,3 +90,5 @@ class CustomerLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError({"cu_password": "This field is required."})
 
         return data
+    
+    
