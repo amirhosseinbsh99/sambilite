@@ -14,10 +14,11 @@ class Customer(AbstractUser):
     cu_phonenumber = models.CharField(max_length=11, unique=True)
     cu_location = models.CharField(max_length=40)
 
+
     USERNAME_FIELD = 'cu_phonenumber'
     first_name = None
     last_name = None
-    
+
 
 
     def __str__(self):

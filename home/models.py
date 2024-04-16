@@ -5,7 +5,8 @@ from accounts.models import Customer
 class Concert(models.Model):
     CONCERT_STATUS_CHOICES = [
         ('Soldout', 'Soldout'),
-        ('active', 'active')
+        ('Active', 'Active'),
+        ('ComingSoon','ComingSoon')
     ]
     CONCERT_TYPE_CHOICES = [
         ('music', 'music'),
@@ -26,23 +27,19 @@ class Concert(models.Model):
 
 
 
-
-
-  
-
 class Seat(models.Model):
     SEAT_STATUS_CHOICES = [
         ('Empty', 'Empty'),
         ('Reserved', 'Reserved'),
         ('Reserving', 'Reserving'),
         ('noy_buyable','noy_buyable')
-        #cannot buy
+        
     ]
     SEAT_AREA_CHOICES = [
         ('VIP', 'VIP'),
         ('balcony', 'balcony'),
         ('simple', 'simple')
-    
+
     ]
     se_id = models.AutoField(primary_key=True)
     se_area = models.CharField(max_length=7, choices=SEAT_AREA_CHOICES, blank=True)
@@ -51,14 +48,14 @@ class Seat(models.Model):
     se_status = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
     se_price = models.DecimalField(max_digits=10,decimal_places=0)
     se_price_range = models.DecimalField(max_digits=10,decimal_places=0)
-#price range 
+
+
+
 class Sans(models.Model):
     sa_id = models.AutoField(primary_key=True)
     sa_number = models.IntegerField(blank=True)
     sa_time = models.TimeField(blank=False)
     co_id = models.OneToOneField(Concert, on_delete=models.CASCADE)
-
-
 
 
 class Ticket(models.Model):
@@ -73,7 +70,8 @@ class Payment(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Completed', 'Completed'),
-        ('Failed', 'Failed')
+        ('Failed', 'Failed'),
+        ('canceled','canceled')
     
     ]
 
