@@ -12,7 +12,7 @@ from datetime import timedelta,datetime
 from rest_framework import filters  
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
-import requests
+import requests,base64
 import json
 from django.http import request
 
@@ -28,11 +28,12 @@ class ListConcertView(ListAPIView):
     def get(self, request):
         ip_response = requests.get('https://api.ipify.org/?format=json')
         ip_data = ip_response.json()
-        myip = ip_data.get('ip') 
-
-        location_response = requests.get(f'http://ip-api.com/json/%7Bmyip%7D')
+        myip = ip_data.get('ip')
+               
+        location_response = requests.get(f'http://ip-api.com/json/{myip}')
         location_data = location_response.json()
         city = location_data.get('city')
+
 
    # Filter concerts based on the city
         concerts = Concert.objects.filter(co_location=city)
@@ -110,7 +111,24 @@ class ConcertSearchView(ListAPIView):
 class CreateListConcertView(CreateAPIView):
     queryset = Concert.objects.all()
     serializer_class = CreateConcertSerializer
+    def perform_create(self, serializer):
+        # Extract the uploaded image from the request data
+        image_file = self.request.data.get('co_image')
+
+        if image_file:
+            # Read the image file into memory
+            image_data = image_file.read()
+
+            # Encode the image data into base64
+            base64_image = base64.b64encode(image_data).decode('utf-8')
+
+            # Replace the original image data with the base64 encoded string
+            self.request.data['co_image'] = base64_image
+
+        # Call the serializer's save method with the modified request data
+        serializer.save()
 #class base
+     ##* for admin *##
 class ConcertView(APIView):
     #if user is authendicated user can see the concerts else it will return permission denied error message
     #permission_classes=(IsAuthenticated,)
@@ -136,13 +154,30 @@ class ConcertView(APIView):
 
 
 
-    def put(self,request,id): 
-           concerts_obj = Concert.objects.get(co_id=id)
-           serializer = CreateConcertSerializer(instance=concerts_obj,data=request.data)
-           serializer.is_valid(raise_exception=True)
-           serializer.save()
-           return Response(serializer.data)
+    def put(self, request, id):
+        # Retrieve the concert object to update
+        concert_obj = Concert.objects.get(co_id=id)
 
+        # Check if the request contains image data
+        image_data = request.data.get('co_image')
+
+        if image_data:
+            # Decode the base64 encoded image data
+            try:
+                decoded_image = base64.b64decode(image_data)
+            except Exception as e:
+                return Response({"error": "Invalid base64 encoded image data"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Update the concert object with the new image data
+            request.data['co_image'] = decoded_image
+
+        # Update the concert object with the request data
+        serializer = CreateConcertSerializer(instance=concert_obj, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Return the updated concert data
+        return Response(serializer.data)
 
 
     def delete(self,request,id):

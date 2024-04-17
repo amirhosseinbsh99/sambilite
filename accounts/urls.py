@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import CustomerLoginAPIView ,CustomerView,CustomerRegister,CreateCustomerView
 
-
+app_name = 'account'
 
 urlpatterns = [
     path('login/',CustomerLoginAPIView.as_view() ,name='CustomerLogin' ),

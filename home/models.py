@@ -47,7 +47,6 @@ class Seat(models.Model):
     se_number = models.IntegerField(blank=True)
     se_status = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
     se_price = models.DecimalField(max_digits=10,decimal_places=0)
-    se_price_range = models.DecimalField(max_digits=10,decimal_places=0)
 
 
 
