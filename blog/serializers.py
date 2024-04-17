@@ -15,6 +15,15 @@ class CreateBlogSerializer(serializers.ModelSerializer):
         model = Blog
         fields = ["b_name","b_text","b_type","b_image", "SeoTitle","SeoDescription","SeoKeywords","SeoIndexpage","SeoCanonical","SeoSchema"]
 
+class DeleteBlogSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Blog
+        fields = ('id', 'title')
+
+
+
+
 
 class AddChoiceSerializer(serializers.Serializer):
     new_choice = serializers.CharField(max_length=100)
