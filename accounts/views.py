@@ -12,14 +12,14 @@ from rest_framework.generics import CreateAPIView
 
 class CustomerLoginAPIView(APIView):
     def post(self, request):
-        cu_phonenumber = request.data.get('cu_phonenumber')
-        cu_password = request.data.get('cu_password')
+        username = request.data.get('username')
+        password = request.data.get('password')
 
         # Retrieve the user based on the phone number
-        user = Customer.objects.filter(cu_phonenumber=cu_phonenumber).first()
+        user = Customer.objects.filter(username=username).first()
 
         # If user exists, verify the password
-        if user is not None and user.check_password(cu_password):
+        if user is not None and user.check_password(password):
             # Authentication successful
             token, _ = Token.objects.get_or_create(user=user)
             return Response({'token': token.key}, status=status.HTTP_200_OK)
