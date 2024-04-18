@@ -5,7 +5,7 @@ from blog.models import Blog
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ("cu_name","cu_phonenumber","cu_location")
+    list_display = ("cu_name","username","cu_location")
 
 class ConcertAdmin(admin.ModelAdmin):
     list_display = ("co_name","co_type")

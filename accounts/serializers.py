@@ -4,7 +4,7 @@ from .models import Customer
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['cu_id', 'cu_name', 'cu_phonenumber', 'cu_email', 'cu_location']
+        fields = ['cu_name', 'Username', 'cu_email', 'cu_location']
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -17,28 +17,28 @@ class CreateCustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields=['cu_name','cu_phonenumber','cu_location','password']
+        fields=['cu_name','username','cu_location','password']
 
 class CustomerRegiserSerializer(serializers.ModelSerializer):
-    cu_password2 = serializers.CharField(style={'input_type':'password'},write_only=True)
+    password2 = serializers.CharField(style={'input_type':'password'},write_only=True)
 
     class Meta:
         model = Customer
-        fields = ['cu_name','cu_email','cu_password','cu_phonenumber','cu_location','cu_password2']
+        fields = ['cu_name','cu_email','password','username','cu_location','password2']
         extra_kwargs = {
-            'cu_password':{'write_only':True}
+            'password':{'write_only':True}
         }
     def save(self):
-        cu_password = self.validated_data['cu_password']
-        cu_password2 = self.validated_data['cu_password2']
+        password = self.validated_data['password']
+        password2 = self.validated_data['password2']
 
-        if cu_password != cu_password2:
+        if password != password2:
             raise serializers.ValidationError({"Error":"پسورد یکی نیست"})
 
         if Customer.objects.filter(cu_email = self.validated_data['cu_email']).exists():
             raise serializers.ValidationError({"Error":"ایمیل شما قبلا ثبت شده است"})
 
-        if Customer.objects.filter(cu_phonenumber = self.validated_data['cu_phonenumber']).exists():
+        if Customer.objects.filter(username = self.validated_data['username']).exists():
             raise serializers.ValidationError({"Error":"شماره شما قبلا ثبت شده است"})
         else:
 
@@ -47,7 +47,7 @@ class CustomerRegiserSerializer(serializers.ModelSerializer):
 
 
                 api = KavenegarAPI('7937386A425358714D3072664F59414B4D79416D6E444C534C55357A724E33395258437661466F34727A343D')
-                phone=Customer.cu_phonenumber
+                phone=Customer.username
 
                 params = {
                 'token': token2,
@@ -62,7 +62,7 @@ class CustomerRegiserSerializer(serializers.ModelSerializer):
             except HTTPException as e: 
                 print(e)
 
-                account = account.objects.create_user(username=Customer.cu_phonenumber,token_send=token2)
+                account = account.objects.create_user(username=Customer.username,token_send=token2)
                 return redirect('accounts:kave_negar_token_send')
 
     def kave_negar_token_send(self):
@@ -71,23 +71,23 @@ class CustomerRegiserSerializer(serializers.ModelSerializer):
         if Customer.objects.filter(token_send=sms_code).exists():
             Customer.objects.filter(token_send=sms_code).delete()
 
-            account = Customer (cu_email = self.validated_data['cu_email'] , cu_name = self.validated_data['cu_name'] , cu_phonenumber = self.validated_data['cu_phonenumber'], username = self.validated_data['cu_phonenumber'])
-            account.set_password (cu_password)
+            account = Customer (cu_email = self.validated_data['cu_email'] , cu_name = self.validated_data['cu_name'] , username = self.validated_data['username'], password = self.validated_data['password'])
+            account.set_password (password)
             account.save()
 
 class CustomerLoginSerializer(serializers.Serializer):
-    cu_phonenumber = serializers.CharField(max_length=11)
-    cu_password = serializers.CharField(style={'input_type':'password'})
+    username = serializers.CharField(max_length=11)
+    password = serializers.CharField(style={'input_type':'password'})
 
     def validate(self, data):
-        cu_phonenumber = data.get('cu_phonenumber')
-        cu_password = data.get('cu_password')
+        username = data.get('username')
+        password = data.get('password')
 
         # Perform any additional validation if needed
-        if not cu_phonenumber:
-            raise serializers.ValidationError({"cu_phonenumber": "This field is required."})
-        if not cu_password:
-            raise serializers.ValidationError({"cu_password": "This field is required."})
+        if not username:
+            raise serializers.ValidationError({"username": "This field is required."})
+        if not password:
+            raise serializers.ValidationError({"password": "This field is required."})
 
         return data
     

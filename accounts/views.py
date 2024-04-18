@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import Customer
-from .serializers import CreateCustomerSerializer,CustomerSerializer,CustomerRegiserSerializer,CustomerLoginSerializer
+from .serializers import CreateCustomerSerializer,CustomerSerializer,CustomerLoginSerializer
 from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView
@@ -67,23 +67,23 @@ class CreateCustomerView(CreateAPIView):
     queryset = Customer.objects.all()
     serializer_class = CreateCustomerSerializer
 
+# no register for now
+# class CustomerRegister(APIView):
+#     def post(self, request):
+#         serializer = CustomerRegiserSerializer(data=request.data)
+#         data = {}
 
-class CustomerRegister(APIView):
-    def post(self, request):
-        serializer = CustomerRegiserSerializer(data=request.data)
-        data = {}
+#         if serializer.is_valid():
+#             account = serializer.save()
 
-        if serializer.is_valid():
-            account = serializer.save()
+#             data['response'] = 'اکانت شما با موفقیت ایجاد شد'
+#             data['name'] = account.cu_name
+#             data['email'] = account.cu_email
 
-            data['response'] = 'اکانت شما با موفقیت ایجاد شد'
-            data['name'] = account.cu_name
-            data['email'] = account.cu_email
+#             token, _ = Token.objects.get_or_create(user=account)
+#             data['token'] = token.key
+#         else:
+#             data = serializer.errors
 
-            token, _ = Token.objects.get_or_create(user=account)
-            data['token'] = token.key
-        else:
-            data = serializer.errors
-
-        return Response(data)
+#         return Response(data)
 

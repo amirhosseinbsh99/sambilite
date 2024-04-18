@@ -42,5 +42,4 @@ class DeleteBlogView(APIView):
         blog_obj = Blog.objects.get(b_id=id)
         blog_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    
+        
