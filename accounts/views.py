@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView
 
-
+# CHANGE TO KHARID BILITE
 class CustomerLoginAPIView(APIView):
     def post(self, request):
         username = request.data.get('username')

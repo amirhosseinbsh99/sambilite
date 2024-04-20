@@ -185,8 +185,14 @@ class ConcertView(APIView):
         concerts_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-
-
+class ConcertDetail(APIView):
+    def get(self, request, co_id):
+        try:
+            concert = Concert.objects.get(pk=co_id)
+        except Concert.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        
 
 
 

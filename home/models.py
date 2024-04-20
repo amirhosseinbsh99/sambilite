@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import Customer
+from django.db.models import Min, Max
 
 
 class Concert(models.Model):
@@ -24,7 +25,10 @@ class Concert(models.Model):
     co_location = models.CharField(max_length=40)
     a_name = models.CharField(max_length=100)
     co_status = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
+    co_min_price = models.DecimalField(max_digits=10,decimal_places=0)
+    co_max_price = models.DecimalField(max_digits=10,decimal_places=0)
 
+    
 
 
 class Seat(models.Model):
@@ -59,6 +63,7 @@ class Sans(models.Model):
 
 class Ticket(models.Model):
     t_id = models.AutoField(primary_key=True)
+    t_serial = models.CharField(max_length=15)
     sa_id = models.ForeignKey(Sans, on_delete=models.CASCADE)
     se_id = models.OneToOneField(Seat, on_delete=models.CASCADE)
     co_id = models.ForeignKey(Concert, on_delete=models.CASCADE)

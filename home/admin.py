@@ -8,9 +8,17 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ("cu_name","username","cu_location")
 
 class ConcertAdmin(admin.ModelAdmin):
-    list_display = ("co_name","co_type")
+    list_display = ("co_name","co_type",'min_price', 'max_price','a_name')
 
+    def min_price(self, obj):
+        return obj.price_range[0]
 
+    def max_price(self, obj):
+        return obj.price_range[1]
+
+    min_price.short_description = 'Min Price'
+    max_price.short_description = 'Max Price'
+    
 
 
 class BlogAdmin(admin.ModelAdmin):
