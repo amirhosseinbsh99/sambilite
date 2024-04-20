@@ -25,8 +25,7 @@ class Concert(models.Model):
     co_location = models.CharField(max_length=40)
     a_name = models.CharField(max_length=100)
     co_status = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
-    co_min_price = models.DecimalField(max_digits=10,decimal_places=0)
-    co_max_price = models.DecimalField(max_digits=10,decimal_places=0)
+    
 
     
 
@@ -42,7 +41,7 @@ class Seat(models.Model):
     SEAT_AREA_CHOICES = [
         ('VIP', 'VIP'),
         ('balcony', 'balcony'),
-        ('simple', 'simple')
+        ('ground', 'ground')
 
     ]
     se_id = models.AutoField(primary_key=True)
@@ -51,7 +50,8 @@ class Seat(models.Model):
     se_number = models.IntegerField(blank=True)
     se_status = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
     se_price = models.DecimalField(max_digits=10,decimal_places=0)
-
+    se_min_price = models.DecimalField(max_digits=10,decimal_places=0)
+    se_max_price = models.DecimalField(max_digits=10,decimal_places=0)
 
 
 class Sans(models.Model):
