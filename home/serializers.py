@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from home.models import Concert,Customer
+from home.models import Concert,Customer,Seat
 
 
 class ConcertSerializer(serializers.ModelSerializer):
@@ -15,8 +15,14 @@ class CreateConcertSerializer(serializers.ModelSerializer):
         fields=['co_name','co_type','co_date','co_address','co_seats','co_status','co_image','a_name']
 
 
+class ConcertDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Concert
+        fields = ['co_name', 'co_type', 'co_date', 'co_address', 'co_status', 'co_image']
 
-
-
+class SeatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Seat
+        fields = ['from_seat','to_seat', 'se_row', 'se_area']
 
 

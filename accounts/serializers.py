@@ -7,6 +7,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         fields = ['cu_name', 'Username', 'cu_email', 'cu_location']
 
 
+
 class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -91,4 +92,7 @@ class CustomerLoginSerializer(serializers.Serializer):
 
         return data
     
+
+
+
     

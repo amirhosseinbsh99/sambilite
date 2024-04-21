@@ -1,7 +1,7 @@
 from rest_framework.response import Response
-from .models import Concert
+from .models import Concert,Seat
 from accounts.models import Customer
-from .serializers import ConcertSerializer,CreateConcertSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,ConcertDetailSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -185,12 +185,27 @@ class ConcertAdminView(APIView):
         concerts_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-class ConcertDetailView(APIView):
-    def get(self, request, co_id):
-        try:
-            Concert = Concert.objects.get(pk=co_id)
-        except Concert.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+class ConcertDetail(APIView):
+    # def get(self, request, co_id):
+    #     try:
+           
+    #         concert = Concert.objects.get(pk=co_id)
+    #         serializer = ConcertSerializer(concert)
+    #         return Response(serializer.data)
+    #     except Concert.DoesNotExist:
+    #         return Response(status=status.HTTP_404_NOT_FOUND)
+    def get(self,request,id):
+        concerts = Concert.objects.all()
+        seats = Seat.objects.all()
+
+        concert_serializer = ConcertSerializer(concerts, many=True)
+        seat_serializer = SeatSerializer(seats, many=True)
+
+        # Return serialized data as JSON response
+        return Response({
+        'concerts': concert_serializer.data,
+        'seats': seat_serializer.data
+    }, status=status.HTTP_200_OK)
         
         
         

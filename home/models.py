@@ -20,7 +20,6 @@ class Concert(models.Model):
     co_type = models.CharField(max_length=10,choices=CONCERT_TYPE_CHOICES,default='music')
     co_date = models.DateTimeField(max_length=20)
     co_address = models.CharField(max_length=250, blank=True)
-    co_seats = models.IntegerField(blank=True)
     co_image = models.ImageField(upload_to = 'blog/' , null = True , blank = True)
     co_location = models.CharField(max_length=40)
     a_name = models.CharField(max_length=100)
@@ -35,7 +34,7 @@ class Seat(models.Model):
         ('Empty', 'Empty'),
         ('Reserved', 'Reserved'),
         ('Reserving', 'Reserving'),
-        ('noy_buyable','noy_buyable')
+        ('not_buyable','not_buyable')
         
     ]
     SEAT_AREA_CHOICES = [
@@ -44,14 +43,16 @@ class Seat(models.Model):
         ('ground', 'ground')
 
     ]
+    co_id = models.OneToOneField(Concert, on_delete=models.CASCADE)
     se_id = models.AutoField(primary_key=True)
     se_area = models.CharField(max_length=7, choices=SEAT_AREA_CHOICES, blank=True)
-    se_row = models.IntegerField(blank=True)
-    se_number = models.IntegerField(blank=True)
+    se_row = models.IntegerField()
+    se_number = models.IntegerField(blank=True,null=True)
     se_status = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
-    se_price = models.DecimalField(max_digits=10,decimal_places=0)
-    se_min_price = models.DecimalField(max_digits=10,decimal_places=0)
-    se_max_price = models.DecimalField(max_digits=10,decimal_places=0)
+    se_price = models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True)
+    from_seat = models.IntegerField()
+    to_seat = models.IntegerField()
+
 
 
 class Sans(models.Model):
