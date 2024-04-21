@@ -26,7 +26,6 @@ class Concert(models.Model):
     co_status = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
     
 
-    
 
 
 class Seat(models.Model):
@@ -43,7 +42,7 @@ class Seat(models.Model):
         ('ground', 'ground')
 
     ]
-    co_id = models.OneToOneField(Concert, on_delete=models.CASCADE)
+    co_id = models.ForeignKey(Concert, on_delete=models.CASCADE)
     se_id = models.AutoField(primary_key=True)
     se_area = models.CharField(max_length=7, choices=SEAT_AREA_CHOICES, blank=True)
     se_row = models.IntegerField()

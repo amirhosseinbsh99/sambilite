@@ -23,6 +23,6 @@ class ConcertDetailSerializer(serializers.ModelSerializer):
 class SeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
-        fields = ['from_seat','to_seat', 'se_row', 'se_area']
+        fields = ['from_seat','to_seat', 'se_row', 'se_area','se_price']
 
 
