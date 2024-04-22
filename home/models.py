@@ -58,7 +58,7 @@ class Sans(models.Model):
     sa_id = models.AutoField(primary_key=True)
     sa_number = models.IntegerField(blank=True)
     sa_time = models.TimeField(blank=False)
-    co_id = models.OneToOneField(Concert, on_delete=models.CASCADE)
+    co_id = models.ForeignKey(Concert, on_delete=models.CASCADE)
 
 
 class Ticket(models.Model):

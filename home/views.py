@@ -1,7 +1,7 @@
 from rest_framework.response import Response
-from .models import Concert,Seat
+from .models import Concert,Seat,Sans
 from accounts.models import Customer
-from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,ConcertDetailSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -197,15 +197,51 @@ class ConcertDetail(APIView):
     def get(self,request,id):
         concerts = Concert.objects.all()
         seats = Seat.objects.all()
+        sans = Sans.objects.all()
 
         concert_serializer = ConcertSerializer(concerts, many=True)
         seat_serializer = SeatSerializer(seats, many=True)
+        sans_serializer = SansSerializer(sans, many=True)
 
-        # Return serialized data as JSON response
         return Response({
         'concerts': concert_serializer.data,
-        'seats': seat_serializer.data
+        'seats': seat_serializer.data,
+        'sans' : sans_serializer.data
     }, status=status.HTTP_200_OK)
+
+
+class SeatsAdminView(APIView):
+
+    def post(self,request):
+        serializer = CreateSeatsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+    def get(self, request, id=None):
+        if id is not None:
+
+            seat = Seat.objects.get(se_id=id)
+            serializer = CreateSeatsSerializer(seat)
+            return Response(serializer.data)
+        else:
+            # List all concerts
+            all_concerts = Seat.objects.all()
+            serializer = CreateSeatsSerializer(all_concerts, many=True)
+            return Response(serializer.data)
+
+
+
+    def put(self, request, id):
+        # Retrieve the seat object to update
+        seat_obj = Seat.objects.get(co_id=id)
+
+
+
+        # Update the seat object with the request data
+        serializer = CreateSeatsSerializer(instance=seat_obj, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         
         
         
