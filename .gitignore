@@ -1,5 +1,5 @@
 ## django ##
 venv/
 db.sqlite3
-data/
+
 /media/blog

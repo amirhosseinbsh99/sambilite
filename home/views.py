@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from .models import Concert,Seat,Sans
 from accounts.models import Customer
-from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -184,7 +184,7 @@ class ConcertAdminView(APIView):
         concerts_obj = Concert.objects.get(co_id=id)
         concerts_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+#if seat status changed change its icon to other color it means change its icon
 class ConcertDetail(APIView):
     # def get(self, request, co_id):
     #     try:
@@ -215,8 +215,15 @@ class SeatsAdminView(APIView):
     def post(self,request):
         serializer = CreateSeatsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
+        co_id = serializer.validated_data.get('co_id')
+        from_seat = serializer.validated_data.get('sa_time')
+        to_seat = serializer.validated_data.get('sa_id')
+        if Sans.objects.filter(from_seat=from_seat,to_seat=to_seat,co_id=co_id).exists():
+            return Response({"message": "تکراری بودن صندلی ها"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
 
     def get(self, request, id=None):
         if id is not None:
@@ -243,7 +250,51 @@ class SeatsAdminView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         
-        
+class SansAdminView(APIView):
+
+    def post(self,request):
+        serializer = CreateSansSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        sa_number = serializer.validated_data.get('sa_number')
+        co_id = serializer.validated_data.get('co_id')
+        sa_time = serializer.validated_data.get('sa_time')
+        sa_id = serializer.validated_data.get('sa_id')
+        if Sans.objects.filter(sa_id=sa_id).exists():
+            return Response({"message": "این سانس از قبل ثبت شده است"}, status=status.HTTP_400_BAD_REQUEST)
+        elif Sans.objects.filter(sa_number=sa_number, co_id=co_id, sa_time=sa_time).exists():
+            return Response({"message": "این سانس تکراری است"}, status=status.HTTP_400_BAD_REQUEST)
+        elif Sans.objects.filter(sa_time=sa_time,co_id=co_id).exists():
+            return Response({"message": "تکراری بودن زمان سانس"}, status=status.HTTP_400_BAD_REQUEST)
+        elif Sans.objects.filter(sa_number=sa_number,co_id=co_id).exists():
+            return Response({"message": f"سانس {sa_number} وجود دارد"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+    def get(self, request, id=None):
+        if id is not None:
+
+            seat = Sans.objects.get(se_id=id)
+            serializer = CreateSansSerializer(seat)
+            return Response(serializer.data)
+        else:
+            # List all concerts
+            all_concerts = Sans.objects.all()
+            serializer = CreateSansSerializer(all_concerts, many=True)
+            return Response(serializer.data)
+
+
+
+    def put(self, request, id):
+        # Retrieve the seat object to update
+        Sans_obj = Sans.objects.get(co_id=id)
+
+
+
+        # Update the seat object with the request data
+        serializer = CreateSansSerializer(instance=Sans_obj, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         
 
 

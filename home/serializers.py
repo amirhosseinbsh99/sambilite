@@ -37,3 +37,9 @@ class SansSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sans
         fields = "__all__"
+class CreateSansSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Sans
+        fields ="__all__"
+

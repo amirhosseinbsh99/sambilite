@@ -33,7 +33,8 @@ class Seat(models.Model):
         ('Empty', 'Empty'),
         ('Reserved', 'Reserved'),
         ('Reserving', 'Reserving'),
-        ('not_buyable','not_buyable')
+        ('not_buyable','not_buyable'),
+        ('selected','selected')
         
     ]
     SEAT_AREA_CHOICES = [
@@ -64,9 +65,9 @@ class Sans(models.Model):
 class Ticket(models.Model):
     t_id = models.AutoField(primary_key=True)
     t_serial = models.CharField(max_length=15)
-    sa_id = models.ForeignKey(Sans, on_delete=models.CASCADE)
+    sa_id = models.OneToOneField(Sans, on_delete=models.CASCADE)
     se_id = models.OneToOneField(Seat, on_delete=models.CASCADE)
-    co_id = models.ForeignKey(Concert, on_delete=models.CASCADE)
+    co_id = models.OneToOneField(Concert, on_delete=models.CASCADE)
 
 
 
