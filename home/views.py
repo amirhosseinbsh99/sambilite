@@ -16,10 +16,6 @@ import requests,base64
 import json
 from django.http import request
 
-
-#for updating put
-#from rest_framework.parsers import MultiPartParse
-
 viewsets.ModelViewSet
 
 #generic views
@@ -108,6 +104,20 @@ class ConcertSearchView(ListAPIView):
     filter_backends = [filters.SearchFilter]
     search_fields = ['$a_name']
 
+
+    def put(self, request, id):
+
+        concert_obj = Concert.objects.get(co_id=id)       
+        serializer = ConcertImageSerializer(instance=concert_obj, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Return the updated concert data
+        return Response(serializer.data)
+    
+
+
+
 class CreateListConcertView(CreateAPIView):
     queryset = Concert.objects.all()
     serializer_class = CreateConcertSerializer
@@ -132,7 +142,7 @@ class CreateListConcertView(CreateAPIView):
 class ConcertAdminView(APIView):
     #if user is authendicated user can see the concerts else it will return permission denied error message
     #permission_classes=(IsAuthenticated,)
-
+    
 
     def post(self,request):
         serializer = CreateConcertSerializer(data=request.data)
@@ -155,21 +165,12 @@ class ConcertAdminView(APIView):
 
 
     def put(self, request, id):
+        
         # Retrieve the concert object to update
         concert_obj = Concert.objects.get(co_id=id)
 
         # Check if the request contains image data
-        image_data = request.data.get('co_image')
-
-        if image_data:
-            # Decode the base64 encoded image data
-            try:
-                decoded_image = base64.b64decode(image_data)
-            except Exception as e:
-                return Response({"error": "Invalid base64 encoded image data"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Update the concert object with the new image data
-            request.data['co_image'] = decoded_image
+        
 
         # Update the concert object with the request data
         serializer = CreateConcertSerializer(instance=concert_obj, data=request.data)
@@ -216,9 +217,9 @@ class SeatsAdminView(APIView):
         serializer = CreateSeatsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         co_id = serializer.validated_data.get('co_id')
-        from_seat = serializer.validated_data.get('sa_time')
-        to_seat = serializer.validated_data.get('sa_id')
-        if Sans.objects.filter(from_seat=from_seat,to_seat=to_seat,co_id=co_id).exists():
+        from_seat = serializer.validated_data.get('from_seat')
+        to_seat = serializer.validated_data.get('to_seat')
+        if Seat.objects.filter(from_seat=from_seat,to_seat=to_seat,co_id=co_id).exists():
             return Response({"message": "تکراری بودن صندلی ها"}, status=status.HTTP_400_BAD_REQUEST)
         
         else:

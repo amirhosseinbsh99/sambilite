@@ -54,7 +54,6 @@ class Seat(models.Model):
     to_seat = models.IntegerField()
 
 
-
 class Sans(models.Model):
     sa_id = models.AutoField(primary_key=True)
     sa_number = models.IntegerField(blank=True)
@@ -85,6 +84,11 @@ class Payment(models.Model):
     se_id = models.ForeignKey(Seat, on_delete=models.CASCADE)
     payment_date = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(max_length=9, choices=PAYMENT_STATUS_CHOICES, default='Pending')
+    c_id = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
     # def __str__(self):
-    #     return f"Payment ID: {self.payment_id}, Ticket ID: {self.ticket_id}, Amount: {self.payment_amount}, Status: {self.payment_status}"
+    #     return f"Payment ID: {self.payment_id}, Ticket ID: {self.ticket_id}, Amount: {self.payment_amount}, Status: {self.payment_status}"    
+    #total price of the seats
+    # @property
+    # def total_price(self):
+    #     total = [for seat in seats]
