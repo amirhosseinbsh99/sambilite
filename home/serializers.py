@@ -12,7 +12,7 @@ class CreateConcertSerializer(serializers.ModelSerializer):
     co_image = serializers.ImageField(required=False)
     class Meta:
         model = Concert
-        fields=['co_name','co_type','co_date','co_address','co_location','co_status','co_image','a_name']
+        fields=['co_name','co_type','co_date','co_address','co_location','co_status','co_image','a_name','num_seats']
 
 class ConcertImageSerializer(serializers.ModelSerializer):
 

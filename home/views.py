@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from .models import Concert,Seat,Sans
 from accounts.models import Customer
+from rest_framework import generics
 from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
 from rest_framework import status
 from rest_framework.views import APIView
@@ -15,6 +16,7 @@ from rest_framework.decorators import api_view
 import requests,base64
 import json
 from django.http import request
+from rest_framework.permissions import IsAuthenticated
 
 viewsets.ModelViewSet
 
@@ -141,13 +143,19 @@ class CreateListConcertView(CreateAPIView):
      ##* for admin *##
 class ConcertAdminView(APIView):
     #if user is authendicated user can see the concerts else it will return permission denied error message
-    #permission_classes=(IsAuthenticated,)
+    permission_classes=(IsAuthenticated,)
     
 
     def post(self,request):
         serializer = CreateConcertSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        concert = serializer.save()
+         # Create seats for the concert
+        num_seats = request.data.get('num_seats')
+        if num_seats is not None:
+            for i in range(int(num_seats)):
+                seat_number = f"Seat {i+1}"
+                Seat.objects.create(concert=concert, seat_number=seat_number)
         return Response(serializer.data,status=status.HTTP_201_CREATED)
 
     def get(self, request, id=None):  
@@ -251,6 +259,15 @@ class SeatsAdminView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         
+
+class SelectSeat(APIView):
+    queryset = Seat.objects.all()
+    serializer_class = SeatSerializer
+
+
+
+
+
 class SansAdminView(APIView):
 
     def post(self,request):
@@ -296,8 +313,15 @@ class SansAdminView(APIView):
         serializer = CreateSansSerializer(instance=Sans_obj, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
 
+# class MakePayment(self,Serializer):
+
+#     #serializer_class = PaymentSerializer
+        
+#     def perform_create(self, serializer):
+#         # Assuming you have implemented a payment gateway integration
+#         # Here you would process the payment and update the seat status to 'Selected'
+#         serializer.save(customer=self.request.user)
 
 
 
