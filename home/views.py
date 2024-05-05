@@ -107,15 +107,18 @@ class ConcertSearchView(ListAPIView):
     search_fields = ['$a_name']
 
 
-    def put(self, request, id):
+    # def put(self, request, id):
 
-        concert_obj = Concert.objects.get(co_id=id)       
-        serializer = ConcertImageSerializer(instance=concert_obj, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
 
-        # Return the updated concert data
-        return Response(serializer.data)
+        
+
+    #     concert_obj = Concert.objects.get(co_id=id)       
+    #     serializer = ConcertImageSerializer(instance=concert_obj, data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+
+    #     # Return the updated concert data
+    #     return Response(serializer.data)
     
 
 
