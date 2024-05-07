@@ -228,9 +228,8 @@ class SeatsAdminView(APIView):
         serializer = CreateSeatsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         co_id = serializer.validated_data.get('co_id')
-        from_seat = serializer.validated_data.get('from_seat')
-        to_seat = serializer.validated_data.get('to_seat')
-        if Seat.objects.filter(from_seat=from_seat,to_seat=to_seat,co_id=co_id).exists():
+        
+        if Seat.objects.filter(co_id=co_id).exists():
             return Response({"message": "تکراری بودن صندلی ها"}, status=status.HTTP_400_BAD_REQUEST)
         
         else:
@@ -325,8 +324,6 @@ class SansAdminView(APIView):
 #         # Assuming you have implemented a payment gateway integration
 #         # Here you would process the payment and update the seat status to 'Selected'
 #         serializer.save(customer=self.request.user)
-
-
 
 
 

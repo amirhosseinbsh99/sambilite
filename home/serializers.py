@@ -12,7 +12,7 @@ class CreateConcertSerializer(serializers.ModelSerializer):
     co_image = serializers.ImageField(required=False)
     class Meta:
         model = Concert
-        fields=['co_name','co_type','co_date','co_address','co_location','co_status','co_image','a_name','num_seats']
+        fields=['co_name','co_type','co_date','co_address','co_location','co_status','co_image','a_name','num_seats_in_rows','num_rows','row_price']
 
 class ConcertImageSerializer(serializers.ModelSerializer):
 
@@ -29,13 +29,13 @@ class ConcertDetailSerializer(serializers.ModelSerializer):
 class SeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
-        fields = ['from_seat','to_seat', 'se_row', 'se_area','se_price']
+        fields = ['se_row', 'se_area','se_price']
 
 class CreateSeatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields=['co_id','se_area','se_row','se_number','se_status','se_price','from_seat','to_seat']
+        fields=['co_id','se_area','se_row','se_number','se_status','se_price','row_price','num_seats_in_rows']
 
 
 class SansSerializer(serializers.ModelSerializer):

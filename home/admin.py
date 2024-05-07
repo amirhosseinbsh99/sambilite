@@ -18,7 +18,7 @@ class BlogAdmin(admin.ModelAdmin):
     list_display = ("b_name", "b_text", "b_type")
 
 class SeatAdmin(admin.ModelAdmin):
-    list_display = ('se_id','co_id','se_row', 'se_area','se_status','from_seat','to_seat')
+    list_display = ('se_id','co_id','se_row', 'se_area','se_status')
 
 class SansAdmin(admin.ModelAdmin):
 
