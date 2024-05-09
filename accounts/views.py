@@ -37,7 +37,7 @@ class CustomerView(APIView):
     def get(self, request, id=None):  
         if id is not None:
         
-            customer = Customer.objects.get(cu_id=id)
+            customer = Customer.objects.get(CustomerId=id)
             serializer = CustomerSerializer(customer)
             return Response(serializer.data)
         else:
@@ -49,7 +49,7 @@ class CustomerView(APIView):
 
 
     def put(self,request,id): 
-           customers_obj = Customer.objects.get(cu_id=id)
+           customers_obj = Customer.objects.get(CustomerId=id)
            serializer = CreateCustomerSerializer(instance=customers_obj,data=request.data)
            serializer.is_valid(raise_exception=True)
            serializer.save()
@@ -58,7 +58,7 @@ class CustomerView(APIView):
 
 
     def delete(self,request,id):
-        customers_obj = Customer.objects.get(cu_id=id)
+        customers_obj = Customer.objects.get(CustomerId=id)
         customers_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -5,24 +5,24 @@ from blog.models import Blog
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ("cu_name","username","cu_location")
+    list_display = ("CustomerName","username","CustomerLocation")
 
 class ConcertAdmin(admin.ModelAdmin):
-    list_display = ("co_name","co_type","a_name")
+    list_display = ("ConcertName","ConcertType","ArtistName")
 
 
 
 
 class BlogAdmin(admin.ModelAdmin):
 
-    list_display = ("b_name", "b_text", "b_type")
+    list_display = ("BlogTitle", "BlogDescription", "BlogType")
 
 class SeatAdmin(admin.ModelAdmin):
-    list_display = ('se_id','co_id','se_row', 'se_area','se_status')
+    list_display = ('SeatId','ConcertId','SeatRow', 'SeatArea','SeatStatus')
 
 class SansAdmin(admin.ModelAdmin):
 
-    list_display = ("co_id","sa_number", "sa_time")
+    list_display = ("ConcertId","SansNumber", "SansTime")
 
 admin.site.register(Concert,ConcertAdmin)
 admin.site.register(Customer,CustomerAdmin)

@@ -8,8 +8,8 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Customer(AbstractUser):
-    cu_name = models.CharField(max_length=100)
-    cu_location = models.CharField(max_length=40)
+    CustomerName = models.CharField(max_length=100)
+    CustomerLocation = models.CharField(max_length=40)
 
 
     first_name = None

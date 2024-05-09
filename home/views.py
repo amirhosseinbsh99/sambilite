@@ -34,7 +34,7 @@ class ListConcertView(ListAPIView):
 
 
    # Filter concerts based on the city
-        concerts = Concert.objects.filter(co_location=city)
+        concerts = Concert.objects.filter(ConcertLocation=city)
         if not concerts.exists():
             # If no concerts found, fetch all concerts
             concerts = Concert.objects.all()
@@ -104,7 +104,7 @@ class ConcertSearchView(ListAPIView):
     queryset = Concert.objects.all()
     serializer_class = ConcertSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['$a_name']
+    search_fields = ['$ArtistName']
 
 
     # def put(self, request, id):
@@ -112,7 +112,7 @@ class ConcertSearchView(ListAPIView):
 
         
 
-    #     concert_obj = Concert.objects.get(co_id=id)       
+    #     concert_obj = Concert.objects.get(ConcertId=id)       
     #     serializer = ConcertImageSerializer(instance=concert_obj, data=request.data)
     #     serializer.is_valid(raise_exception=True)
     #     serializer.save()
@@ -128,7 +128,7 @@ class CreateListConcertView(CreateAPIView):
     serializer_class = CreateConcertSerializer
     def perform_create(self, serializer):
         # Extract the uploaded image from the request data
-        image_file = self.request.data.get('co_image')
+        image_file = self.request.data.get('ConcertImage')
 
         if image_file:
             # Read the image file into memory
@@ -138,7 +138,7 @@ class CreateListConcertView(CreateAPIView):
             base64_image = base64.b64encode(image_data).decode('utf-8')
 
             # Replace the original image data with the base64 encoded string
-            self.request.data['co_image'] = base64_image
+            self.request.data['ConcertImage'] = base64_image
 
         # Call the serializer's save method with the modified request data
         serializer.save()
@@ -157,14 +157,14 @@ class ConcertAdminView(APIView):
         num_seats = request.data.get('num_seats')
         if num_seats is not None:
             for i in range(int(num_seats)):
-                seat_number = f"Seat {i+1}"
-                Seat.objects.create(concert=concert, seat_number=seat_number)
+                SeatNumber = f"Seat {i+1}"
+                Seat.objects.create(concert=concert, SeatNumber=SeatNumber)
         return Response(serializer.data,status=status.HTTP_201_CREATED)
 
     def get(self, request, id=None):  
         if id is not None:
         
-            concert = Concert.objects.get(co_id=id)
+            concert = Concert.objects.get(ConcertId=id)
             serializer = ConcertSerializer(concert)
             return Response(serializer.data)
         else:
@@ -178,7 +178,7 @@ class ConcertAdminView(APIView):
     def put(self, request, id):
         
         # Retrieve the concert object to update
-        concert_obj = Concert.objects.get(co_id=id)
+        concert_obj = Concert.objects.get(ConcertId=id)
 
         # Check if the request contains image data
         
@@ -193,15 +193,15 @@ class ConcertAdminView(APIView):
 
 
     def delete(self,request,id):
-        concerts_obj = Concert.objects.get(co_id=id)
+        concerts_obj = Concert.objects.get(ConcertId=id)
         concerts_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 #if seat status changed change its icon to other color it means change its icon
 class ConcertDetail(APIView):
-    # def get(self, request, co_id):
+    # def get(self, request, ConcertId):
     #     try:
            
-    #         concert = Concert.objects.get(pk=co_id)
+    #         concert = Concert.objects.get(pk=ConcertId)
     #         serializer = ConcertSerializer(concert)
     #         return Response(serializer.data)
     #     except Concert.DoesNotExist:
@@ -227,9 +227,9 @@ class SeatsAdminView(APIView):
     def post(self,request):
         serializer = CreateSeatsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        co_id = serializer.validated_data.get('co_id')
+        ConcertId = serializer.validated_data.get('ConcertId')
         
-        if Seat.objects.filter(co_id=co_id).exists():
+        if Seat.objects.filter(ConcertId=ConcertId).exists():
             return Response({"message": "تکراری بودن صندلی ها"}, status=status.HTTP_400_BAD_REQUEST)
         
         else:
@@ -252,7 +252,7 @@ class SeatsAdminView(APIView):
 
     def put(self, request, id):
         # Retrieve the seat object to update
-        seat_obj = Seat.objects.get(co_id=id)
+        seat_obj = Seat.objects.get(ConcertId=id)
 
 
 
@@ -275,18 +275,18 @@ class SansAdminView(APIView):
     def post(self,request):
         serializer = CreateSansSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        sa_number = serializer.validated_data.get('sa_number')
-        co_id = serializer.validated_data.get('co_id')
-        sa_time = serializer.validated_data.get('sa_time')
-        sa_id = serializer.validated_data.get('sa_id')
-        if Sans.objects.filter(sa_id=sa_id).exists():
+        SansNumber = serializer.validated_data.get('SansNumber')
+        ConcertId = serializer.validated_data.get('ConcertId')
+        SansTime = serializer.validated_data.get('SansTime')
+        SansId = serializer.validated_data.get('SansId')
+        if Sans.objects.filter(SansId=SansId).exists():
             return Response({"message": "این سانس از قبل ثبت شده است"}, status=status.HTTP_400_BAD_REQUEST)
-        elif Sans.objects.filter(sa_number=sa_number, co_id=co_id, sa_time=sa_time).exists():
+        elif Sans.objects.filter(SansNumber=SansNumber, ConcertId=ConcertId, SansTime=SansTime).exists():
             return Response({"message": "این سانس تکراری است"}, status=status.HTTP_400_BAD_REQUEST)
-        elif Sans.objects.filter(sa_time=sa_time,co_id=co_id).exists():
+        elif Sans.objects.filter(SansTime=SansTime,ConcertId=ConcertId).exists():
             return Response({"message": "تکراری بودن زمان سانس"}, status=status.HTTP_400_BAD_REQUEST)
-        elif Sans.objects.filter(sa_number=sa_number,co_id=co_id).exists():
-            return Response({"message": f"سانس {sa_number} وجود دارد"}, status=status.HTTP_400_BAD_REQUEST)
+        elif Sans.objects.filter(SansNumber=SansNumber,ConcertId=ConcertId).exists():
+            return Response({"message": f"سانس {SansNumber} وجود دارد"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
@@ -307,7 +307,7 @@ class SansAdminView(APIView):
 
     def put(self, request, id):
         # Retrieve the seat object to update
-        Sans_obj = Sans.objects.get(co_id=id)
+        Sans_obj = Sans.objects.get(ConcertId=id)
 
 
 

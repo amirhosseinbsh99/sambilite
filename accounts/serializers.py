@@ -4,7 +4,7 @@ from .models import Customer
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['cu_name', 'Username', 'cu_email', 'cu_location']
+        fields = ['CustomerName', 'Username', 'cu_email', 'CustomerLocation']
 
 
 
@@ -18,14 +18,14 @@ class CreateCustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields=['cu_name','username','cu_location','password']
+        fields=['CustomerName','username','CustomerLocation','password']
 
 class CustomerRegiserSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type':'password'},write_only=True)
 
     class Meta:
         model = Customer
-        fields = ['cu_name','cu_email','password','username','cu_location','password2']
+        fields = ['CustomerName','cu_email','password','username','CustomerLocation','password2']
         extra_kwargs = {
             'password':{'write_only':True}
         }
@@ -72,7 +72,7 @@ class CustomerRegiserSerializer(serializers.ModelSerializer):
         if Customer.objects.filter(token_send=sms_code).exists():
             Customer.objects.filter(token_send=sms_code).delete()
 
-            account = Customer (cu_email = self.validated_data['cu_email'] , cu_name = self.validated_data['cu_name'] , username = self.validated_data['username'], password = self.validated_data['password'])
+            account = Customer (cu_email = self.validated_data['cu_email'] , CustomerName = self.validated_data['CustomerName'] , username = self.validated_data['username'], password = self.validated_data['password'])
             account.set_password (password)
             account.save()
 

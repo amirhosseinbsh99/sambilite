@@ -9,33 +9,33 @@ class ConcertSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class CreateConcertSerializer(serializers.ModelSerializer):
-    co_image = serializers.ImageField(required=False)
+    ConcertImage = serializers.ImageField(required=False)
     class Meta:
         model = Concert
-        fields=['co_name','co_type','co_date','co_address','co_location','co_status','co_image','a_name','num_seats_in_rows','num_rows','row_price']
+        fields=['ConcertName','ConcertType','ConcertDate','ConcertAddress','ConcertLocation','ConcertStatus','ConcertImage','ArtistName','NumberSeatsInRows','NumberRows','RowPrice']
 
 class ConcertImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Concert
-        fields = ['co_image']
+        fields = ['ConcertName']
 
 
 class ConcertDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Concert
-        fields = ['co_name', 'co_type', 'co_date', 'co_address', 'co_status', 'co_image']
+        fields = ['ConcertName', 'ConcertType', 'ConcertDate', 'ConcertAddress', 'ConcertStatus', 'ConcertImage']
 
 class SeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
-        fields = ['se_row', 'se_area','se_price']
+        fields = ['SeatRow', 'SeatArea','SeatPrice']
 
 class CreateSeatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields=['co_id','se_area','se_row','se_number','se_status','se_price','row_price','num_seats_in_rows']
+        fields=['ConcertId','SeatArea','SeatRow','se_number','se_status','SeatPrice','RowPrice','NumberSeatsInRows']
 
 
 class SansSerializer(serializers.ModelSerializer):
