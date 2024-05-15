@@ -23,12 +23,18 @@ class Concert(models.Model):
     ConcertLocation = models.CharField(max_length=40)
     ArtistName = models.CharField(max_length=100)
     ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
-    NumberRows = models.IntegerField()
-    NumberSeatsInRows = models.IntegerField()
-    RowPrice = models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True)
+    NumberofRows = models.IntegerField() 
+    
     
     
 
+class Rows(models.Model):
+    ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
+    Rowid = models.AutoField(primary_key=True)
+    RowNumber = models.IntegerField()
+    RowPrice =  models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True)
+
+    
 
 
 class Seat(models.Model):
@@ -37,8 +43,8 @@ class Seat(models.Model):
         ('Reserved', 'Reserved'),
         ('Reserving', 'Reserving'),
         ('not_buyable','not_buyable'),
-        ('selected','selected')
-        
+        ('selected','selected'),
+        ('space','space')
     ]
     SEAT_AREA_CHOICES = [
         ('VIP', 'VIP'),
@@ -47,10 +53,10 @@ class Seat(models.Model):
 
     ]
     ConcertId = models.ForeignKey(Concert,related_name='Concert_name', on_delete=models.CASCADE)
+    Rowid = models.ForeignKey(Rows,on_delete=models.CASCADE)
     SeatId = models.AutoField(primary_key=True)
     SeatArea = models.CharField(max_length=7, choices=SEAT_AREA_CHOICES, blank=True)
-    SeatRow = models.IntegerField()
-    
+    SeatRow = models.IntegerField(blank=True,null=True)
     SeatNumber = models.IntegerField(blank=True,null=True)
     SeatStatus = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
     SeatPrice = models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True)

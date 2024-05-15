@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from home.models import Concert,Seat,Sans
 
+class RowsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Concert
+        fields = "__all__"
+
 
 class ConcertSerializer(serializers.ModelSerializer):
 
@@ -12,7 +18,7 @@ class CreateConcertSerializer(serializers.ModelSerializer):
     ConcertImage = serializers.ImageField(required=False)
     class Meta:
         model = Concert
-        fields=['ConcertName','ConcertType','ConcertDate','ConcertAddress','ConcertLocation','ConcertStatus','ConcertImage','ArtistName','NumberSeatsInRows','NumberRows','RowPrice']
+        fields=['ConcertName','ConcertType','ConcertDate','ConcertAddress','ConcertLocation','NumberofRows','ConcertStatus','ConcertImage','ArtistName']
 
 class ConcertImageSerializer(serializers.ModelSerializer):
 
@@ -35,7 +41,7 @@ class CreateSeatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields=['ConcertId','SeatArea','SeatRow','se_number','se_status','SeatPrice','RowPrice','NumberSeatsInRows']
+        fields=['ConcertId','SeatArea','SeatRow','se_status','SeatPrice']
 
 
 class SansSerializer(serializers.ModelSerializer):

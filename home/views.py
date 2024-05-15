@@ -1,5 +1,5 @@
 from rest_framework.response import Response
-from .models import Concert,Seat,Sans
+from .models import Concert,Seat,Sans,Rows
 from accounts.models import Customer
 from rest_framework import generics
 from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
@@ -149,17 +149,37 @@ class ConcertAdminView(APIView):
     permission_classes=(IsAuthenticated,)
     
 
-    def post(self,request):
+
+    def create_rows(self, id, num_rows):
+        try:
+            concert = Concert.objects.get(ConcertId=id)
+            rows = []
+
+            for row_number in range(1, num_rows + 1):
+                row = Rows(ConcertId=concert, RowNumber=row_number)
+                row.save()
+                rows.append(row)
+
+            return rows, None
+        except Concert.DoesNotExist:
+            return None, 'Concert not found.'
+
+    def post(self, request):
         serializer = CreateConcertSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        concert = serializer.save()
-         # Create seats for the concert
-        num_seats = request.data.get('num_seats')
-        if num_seats is not None:
-            for i in range(int(num_seats)):
-                SeatNumber = f"Seat {i+1}"
-                Seat.objects.create(concert=concert, SeatNumber=SeatNumber)
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
+        concert_data = serializer.validated_data
+        serializer.save()
+
+        # Create rows for the concert
+        num_rows = request.data.get('NumberofRows', 0)
+        if num_rows > 0:
+            rows, error = self.create_rows(concert_data['ConcertId'], num_rows)
+            if error:
+                return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        
 
     def get(self, request, id=None):  
         if id is not None:
@@ -173,7 +193,7 @@ class ConcertAdminView(APIView):
             serializer = ConcertSerializer(all_concerts, many=True)
             return Response(serializer.data)
 
-
+    
 
     def put(self, request, id):
         
@@ -196,6 +216,32 @@ class ConcertAdminView(APIView):
         concerts_obj = Concert.objects.get(ConcertId=id)
         concerts_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class GenerateSeats(APIView):
+    permission_classes=(IsAuthenticated,)
+
+
+    def get(self, request, start, end,  id,row_id):
+        try:
+            concert_obj  = Concert.objects.get(pk=id)
+            row_obj  = Rows.objects.get(pk=id)
+            start = int(start)
+            end = int(end)
+            seats = []
+
+            for SeatNumber in range(start, end + 1):
+                seat = Seat(Concert=concert_obj,Rows=row_obj, SeatNumber=SeatNumber)
+                seat.save()
+                seats.append(seat)
+
+            serializer = SeatSerializer(seats, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Concert.DoesNotExist:
+            return Response({'error': 'Concert not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Rows.DoesNotExist:
+            return Response({'error': 'Row not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError:
+            return Response({'error': 'Invalid input. Please provide integers for start and end.'}, status=status.HTTP_400_BAD_REQUEST)
 #if seat status changed change its icon to other color it means change its icon
 class ConcertDetail(APIView):
     # def get(self, request, ConcertId):
