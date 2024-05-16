@@ -10,10 +10,11 @@ from django.contrib.auth.models import AbstractUser
 class Customer(AbstractUser):
     CustomerName = models.CharField(max_length=100)
     CustomerLocation = models.CharField(max_length=40)
-
+    is_admin = models.BooleanField()
 
     first_name = None
     last_name = None
+    
 
 @receiver(post_save,sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance = None, created = False, **kwargs):

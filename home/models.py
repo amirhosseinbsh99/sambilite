@@ -24,6 +24,9 @@ class Concert(models.Model):
     ArtistName = models.CharField(max_length=100)
     ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
     NumberofRows = models.IntegerField() 
+
+    def __str__(self):
+        return self.ConcertName
     
     
     
@@ -35,7 +38,7 @@ class Rows(models.Model):
     RowPrice =  models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True)
 
     
-
+#DROPLIST
 
 class Seat(models.Model):
     SEAT_STATUS_CHOICES = [
@@ -100,3 +103,5 @@ class Payment(models.Model):
     # @property
     # def total_price(self):
     #     total = [for seat in seats]
+
+    

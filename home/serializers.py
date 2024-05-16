@@ -18,7 +18,8 @@ class CreateConcertSerializer(serializers.ModelSerializer):
     ConcertImage = serializers.ImageField(required=False)
     class Meta:
         model = Concert
-        fields=['ConcertName','ConcertType','ConcertDate','ConcertAddress','ConcertLocation','NumberofRows','ConcertStatus','ConcertImage','ArtistName']
+        fields="__all__"
+
 
 class ConcertImageSerializer(serializers.ModelSerializer):
 

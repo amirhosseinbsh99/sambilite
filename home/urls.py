@@ -1,5 +1,5 @@
 from django.urls import path
-from home.views import ConcertAdminView,ListConcertView,GenerateSeats,SansAdminView,CreateListConcertView,ConcertSearchView,ConcertDetail,SeatsAdminView
+from home.views import ConcertAdminView,ListConcertView,GenerateSeats,SansAdminView,ConcertSearchView,ConcertDetail,SeatsAdminView
 from django.views.generic import TemplateView
 
 
@@ -8,7 +8,7 @@ app_name = 'home'
 urlpatterns = [
         path('co-admin/Concerts/', ConcertAdminView.as_view(), name='ConcertAdminView'),
         path('co-admin/Concerts/<int:id>/', ConcertAdminView.as_view(), name='EditConcertView'),
-        path('co-admin/Concerts/create/', CreateListConcertView.as_view(), name='CreateListConcertView'),
+        path('co-admin/Concerts/create/', ConcertAdminView.as_view(), name='CreateListConcertView'),
         path('co-admin/Concerts/<int:id>/generate-rows/', ConcertAdminView.as_view(), name='generate_rows'),
         path('', ListConcertView.as_view(), name='ListConcertView'),
         path("Search/", ConcertSearchView.as_view()  , name = "ConcertSearchView"),
@@ -22,16 +22,3 @@ urlpatterns = [
         path('about-us',TemplateView.as_view(template_name='about-us'),name='about-us'),
         path('contact-us',TemplateView.as_view(template_name='contact-us'),name='contact-us')
 ]
-
-
-# co-admin/Concerts/
-# co-admin/Concerts/<int:id>/
-# co-admin/Concerts/create/'
-# Search/
-# Concerts/<int:id>/
-# co-admin/Seats/
-# co-admin/Seats/<int:id>/
-# co-admin/Seats/create/
-# co-admin/Sans/create/
-# co-admin/Sans/<int:id>/
-# co-admin/Sans/

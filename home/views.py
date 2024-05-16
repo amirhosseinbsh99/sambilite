@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from .models import Concert,Seat,Sans,Rows
 from accounts.models import Customer
 from rest_framework import generics
-from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,RowsSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -13,7 +13,7 @@ from datetime import timedelta,datetime
 from rest_framework import filters  
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
-import requests,base64
+import requests
 import json
 from django.http import request
 from rest_framework.permissions import IsAuthenticated
@@ -31,7 +31,6 @@ class ListConcertView(ListAPIView):
         location_response = requests.get(f'http://ip-api.com/json/{myip}')
         location_data = location_response.json()
         city = location_data.get('city')
-
 
    # Filter concerts based on the city
         concerts = Concert.objects.filter(ConcertLocation=city)
@@ -122,64 +121,48 @@ class ConcertSearchView(ListAPIView):
     
 
 
-
-class CreateListConcertView(CreateAPIView):
-    queryset = Concert.objects.all()
-    serializer_class = CreateConcertSerializer
-    def perform_create(self, serializer):
-        # Extract the uploaded image from the request data
-        image_file = self.request.data.get('ConcertImage')
-
-        if image_file:
-            # Read the image file into memory
-            image_data = image_file.read()
-
-            # Encode the image data into base64
-            base64_image = base64.b64encode(image_data).decode('utf-8')
-
-            # Replace the original image data with the base64 encoded string
-            self.request.data['ConcertImage'] = base64_image
-
-        # Call the serializer's save method with the modified request data
-        serializer.save()
-#class base
      ##* for admin *##
 class ConcertAdminView(APIView):
-    #if user is authendicated user can see the concerts else it will return permission denied error message
-    permission_classes=(IsAuthenticated,)
+   # permission_classes=(IsAuthenticated,)
     
-
-
-    def create_rows(self, id, num_rows):
+    def create_rows(self, id, num_rows, row_price=None):
         try:
             concert = Concert.objects.get(ConcertId=id)
+
             rows = []
 
             for row_number in range(1, num_rows + 1):
-                row = Rows(ConcertId=concert, RowNumber=row_number)
+                row = Rows(ConcertId=id, RowNumber=row_number, RowPrice=row_price)
                 row.save()
                 rows.append(row)
+                print(row_number)
 
             return rows, None
         except Concert.DoesNotExist:
             return None, 'Concert not found.'
 
     def post(self, request):
+        
         serializer = CreateConcertSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        concert_data = serializer.validated_data
-        serializer.save()
+        concert = serializer.save()  # Save the concert object and obtain its ID
+        ConcertId = concert.ConcertId # Obtain the concert ID
+          
+        print(ConcertId)
+        num_rows = request.data.get('NumberofRows', 0)
+        row_price = request.data.get('rowprice')
 
         # Create rows for the concert
-        num_rows = request.data.get('NumberofRows', 0)
         if num_rows > 0:
-            rows, error = self.create_rows(concert_data['ConcertId'], num_rows)
+            rows, error = self.create_rows(ConcertId, num_rows, row_price)
             if error:
                 return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer = RowsSerializer(rows, many=True)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': 'تعداد ردیف.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        
 
     def get(self, request, id=None):  
         if id is not None:
@@ -199,10 +182,7 @@ class ConcertAdminView(APIView):
         
         # Retrieve the concert object to update
         concert_obj = Concert.objects.get(ConcertId=id)
-
-        # Check if the request contains image data
         
-
         # Update the concert object with the request data
         serializer = CreateConcertSerializer(instance=concert_obj, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -246,7 +226,6 @@ class GenerateSeats(APIView):
 class ConcertDetail(APIView):
     # def get(self, request, ConcertId):
     #     try:
-           
     #         concert = Concert.objects.get(pk=ConcertId)
     #         serializer = ConcertSerializer(concert)
     #         return Response(serializer.data)
@@ -323,6 +302,7 @@ class SansAdminView(APIView):
         serializer.is_valid(raise_exception=True)
         SansNumber = serializer.validated_data.get('SansNumber')
         ConcertId = serializer.validated_data.get('ConcertId')
+        print(ConcertId)
         SansTime = serializer.validated_data.get('SansTime')
         SansId = serializer.validated_data.get('SansId')
         if Sans.objects.filter(SansId=SansId).exists():
