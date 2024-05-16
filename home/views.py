@@ -123,46 +123,20 @@ class ConcertSearchView(ListAPIView):
 
      ##* for admin *##
 class ConcertAdminView(APIView):
-   # permission_classes=(IsAuthenticated,)
-    
-    def create_rows(self, id, num_rows, row_price=None):
-        try:
-            concert = Concert.objects.get(ConcertId=id)
-
-            rows = []
-
-            for row_number in range(1, num_rows + 1):
-                row = Rows(ConcertId=id, RowNumber=row_number, RowPrice=row_price)
-                row.save()
-                rows.append(row)
-                print(row_number)
-
-            return rows, None
-        except Concert.DoesNotExist:
-            return None, 'Concert not found.'
-
     def post(self, request):
-        
         serializer = CreateConcertSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        concert = serializer.save()  # Save the concert object and obtain its ID
-        ConcertId = concert.ConcertId # Obtain the concert ID
-          
-        print(ConcertId)
-        num_rows = request.data.get('NumberofRows', 0)
-        row_price = request.data.get('rowprice')
-
-        # Create rows for the concert
-        if num_rows > 0:
-            rows, error = self.create_rows(ConcertId, num_rows, row_price)
-            if error:
-                return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer = RowsSerializer(rows, many=True)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': 'تعداد ردیف.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        concert = serializer.save()
+        
+        # Create the specified number of rows for the new concert
+        number_of_rows = concert.NumberofRows
+        rows_to_create = [
+            Rows(ConcertId=concert, RowNumber=i+1)
+            for i in range(number_of_rows)
+        ]
+        Rows.objects.bulk_create(rows_to_create)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get(self, request, id=None):  
         if id is not None:
