@@ -38,11 +38,7 @@ class SeatSerializer(serializers.ModelSerializer):
         model = Seat
         fields = ['SeatRow', 'SeatArea','SeatPrice']
 
-class CreateSeatsSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Seat
-        fields=['ConcertId','Rowid','NumberofSeat']
 
 
 class SansSerializer(serializers.ModelSerializer):
@@ -57,9 +53,16 @@ class CreateSansSerializer(serializers.ModelSerializer):
         fields ="__all__"
 
 class GetRowSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Rows
         fields = "__all__"
+
+class CreateSeatsSerializer(serializers.ModelSerializer):
+    Row = GetRowSerializer(read_only=True, source='Rowid')
+    NumberofSeat = serializers.IntegerField(source='Rowid.NumberofSeat', read_only=True)
+
+    class Meta:
+        model = Seat
+        fields = ['Row', 'ConcertId', 'Rowid', 'NumberofSeat']
         
 

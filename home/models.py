@@ -32,11 +32,19 @@ class Concert(models.Model):
     
 
 class Rows(models.Model):
+    Row_Area_CHOICES = [
+        ('VIP', 'VIP'),
+        ('balcony', 'balcony'),
+        ('ground', 'ground')
+
+    ]
+
     ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
     Rowid = models.AutoField(primary_key=True)
     RowNumber = models.IntegerField()
-    RowPrice =  models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True)
-
+    RowPrice =  models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True) 
+    RowArea = models.CharField(max_length=7, choices=Row_Area_CHOICES, blank=True)
+    NumberofSeat = models.IntegerField(blank=True,null=True)
     def str(self):
         return f"{self.Rowid} - {self.ConcertId}"
 #DROPLIST
@@ -50,21 +58,13 @@ class Seat(models.Model):
         ('selected','selected'),
         ('space','space')
     ]
-    SEAT_AREA_CHOICES = [
-        ('VIP', 'VIP'),
-        ('balcony', 'balcony'),
-        ('ground', 'ground')
-
-    ]
+    
     ConcertId = models.ForeignKey(Concert,related_name='Concert_name', on_delete=models.CASCADE)
     Rowid = models.ForeignKey(Rows,related_name='Rows_Number', on_delete=models.CASCADE)
     SeatId = models.AutoField(primary_key=True)
-    SeatArea = models.CharField(max_length=7, choices=SEAT_AREA_CHOICES, blank=True)
-    SeatRow = models.IntegerField(blank=True,null=True)
-    NumberofSeat = models.IntegerField(blank=True,null=True)
     SeatNumber = models.IntegerField(blank=True,null=True)
     SeatStatus = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
-    SeatPrice = models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True)
+    
 
 
 

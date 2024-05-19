@@ -233,36 +233,32 @@ class RowsAdminView(APIView):
     
 class SeatsAdminView(APIView):
 
-   # permission_classes=(IsAuthenticated,)
-
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, id, Rowid):
-        serializer = CreateSeatsSerializer(data=request.data)
+        data = request.data
+        data['ConcertId'] = id
+        data['Rowid'] = Rowid
+        
+        serializer = CreateSeatsSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         seats = serializer.save()
-        print(seats.Rowid)
-        # Create the specified number of rows for the new concert
-        number_of_seats = seats.NumberofSeat
         
+        # Create the specified number of seats for the given row and concert
+        number_of_seats = seats.Rowid.NumberofSeat
         seats_to_create = [
-            Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i+1)
+            Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i + 1)
             for i in range(number_of_seats)
         ]
         Seat.objects.bulk_create(seats_to_create)
-        
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def get(self, request, id=None):
-        if id is not None:
-
-            seat = Seat.objects.get(SeatId=id)
-            serializer = CreateSeatsSerializer(seat)
-            return Response(serializer.data)
-        else:
-            # List all concerts
-            all_concerts = Seat.objects.all()
-            serializer = CreateSeatsSerializer(all_concerts, many=True)
-            return Response(serializer.data)
+    def get(self, request, id, Rowid):
+        # Retrieve seats for the given concert and row
+        seats = Seat.objects.filter(ConcertId=id, Rowid=Rowid)
+        serializer = CreateSeatsSerializer(seats, many=True)
+        return Response(serializer.data)
 
 
 
