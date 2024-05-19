@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from home.models import Concert,Seat,Sans
+from home.models import Concert,Seat,Sans,Rows
 
 class RowsSerializer(serializers.ModelSerializer):
 
@@ -56,6 +56,10 @@ class CreateSansSerializer(serializers.ModelSerializer):
         model = Sans
         fields ="__all__"
 
+class GetRowSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = Rows
+        fields = "__all__"
         
 

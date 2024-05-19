@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from .models import Concert,Seat,Sans,Rows
 from accounts.models import Customer
 from rest_framework import generics
-from .serializers import ConcertSerializer,CreateConcertSerializer,RowsSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,RowsSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -216,13 +216,27 @@ class ConcertDetail(APIView):
         'sans' : sans_serializer.data
     }, status=status.HTTP_200_OK)
 
+class RowsAdminView(APIView):
+    def get(self, request, id=None):
+        if id is not None:
+        
+            rows = Rows.objects.get(ConcertId=id)
+            serializer = GetRowSerializer(rows)
+            return Response(serializer.data)
+        else:
+            # List all concerts
+            all_rows = Rows.objects.all()
+            serializer = GetRowSerializer(all_rows, many=True)
+            return Response(serializer.data)
 
+
+    
 class SeatsAdminView(APIView):
 
    # permission_classes=(IsAuthenticated,)
 
 
-    def post(self, request):
+    def post(self, request, id, Rowid):
         serializer = CreateSeatsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         seats = serializer.save()
@@ -231,7 +245,7 @@ class SeatsAdminView(APIView):
         number_of_seats = seats.NumberofSeat
         
         seats_to_create = [
-            Seat(SeatId=seats,ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i+1)
+            Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i+1)
             for i in range(number_of_seats)
         ]
         Seat.objects.bulk_create(seats_to_create)
@@ -241,7 +255,7 @@ class SeatsAdminView(APIView):
     def get(self, request, id=None):
         if id is not None:
 
-            seat = Seat.objects.get(se_id=id)
+            seat = Seat.objects.get(SeatId=id)
             serializer = CreateSeatsSerializer(seat)
             return Response(serializer.data)
         else:
