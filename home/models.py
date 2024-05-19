@@ -26,7 +26,7 @@ class Concert(models.Model):
     NumberofRows = models.IntegerField() 
 
     def __str__(self):
-        return self.ConcertName
+        return f"{self.ConcertId} - {self.ConcertName}"
     
     
     

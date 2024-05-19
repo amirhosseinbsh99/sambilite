@@ -153,17 +153,35 @@ class ConcertAdminView(APIView):
     
 
     def put(self, request, id):
-        
-        # Retrieve the concert object to update
-        concert_obj = Concert.objects.get(ConcertId=id)
-        
-        # Update the concert object with the request data
-        serializer = CreateConcertSerializer(instance=concert_obj, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            # Retrieve the concert object to update
+            concert_obj = Concert.objects.get(ConcertId=id)
+            
+            # Update the concert object with the request data
+            serializer = CreateConcertSerializer(instance=concert_obj, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            updated_concert = serializer.save()
 
-        # Return the updated concert data
-        return Response(serializer.data)
+            # Update the rows for the updated concert
+            current_number_of_rows = updated_concert.NumberofRows
+            existing_rows = Rows.objects.filter(ConcertId=updated_concert)
+            existing_rows_count = existing_rows.count()
+            
+            if existing_rows_count != current_number_of_rows:
+                # Delete the existing rows
+                existing_rows.delete()
+                
+                # Create the new rows
+                new_rows_to_create = [
+                    Rows(ConcertId=updated_concert, RowNumber=i+1)
+                    for i in range(current_number_of_rows)
+                ]
+                Rows.objects.bulk_create(new_rows_to_create)
+                
+            # Return the updated concert data
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Concert.DoesNotExist:
+            return Response({"error": "Concert not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
     def delete(self,request,id):
