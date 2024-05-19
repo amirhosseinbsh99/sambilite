@@ -42,7 +42,7 @@ class CreateSeatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields=['ConcertId','SeatArea','SeatRow','se_status','SeatPrice']
+        fields=['ConcertId','Rowid','NumberofSeat']
 
 
 class SansSerializer(serializers.ModelSerializer):
@@ -55,4 +55,7 @@ class CreateSansSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sans
         fields ="__all__"
+
+
+        
 

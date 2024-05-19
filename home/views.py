@@ -189,31 +189,9 @@ class ConcertAdminView(APIView):
         concerts_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-class GenerateSeats(APIView):
-    permission_classes=(IsAuthenticated,)
 
+   
 
-    def get(self, request, start, end,  id,row_id):
-        try:
-            concert_obj  = Concert.objects.get(pk=id)
-            row_obj  = Rows.objects.get(pk=id)
-            start = int(start)
-            end = int(end)
-            seats = []
-
-            for SeatNumber in range(start, end + 1):
-                seat = Seat(Concert=concert_obj,Rows=row_obj, SeatNumber=SeatNumber)
-                seat.save()
-                seats.append(seat)
-
-            serializer = SeatSerializer(seats, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Concert.DoesNotExist:
-            return Response({'error': 'Concert not found.'}, status=status.HTTP_404_NOT_FOUND)
-        except Rows.DoesNotExist:
-            return Response({'error': 'Row not found.'}, status=status.HTTP_404_NOT_FOUND)
-        except ValueError:
-            return Response({'error': 'Invalid input. Please provide integers for start and end.'}, status=status.HTTP_400_BAD_REQUEST)
 #if seat status changed change its icon to other color it means change its icon
 class ConcertDetail(APIView):
     # def get(self, request, ConcertId):
@@ -241,17 +219,24 @@ class ConcertDetail(APIView):
 
 class SeatsAdminView(APIView):
 
-    def post(self,request):
+   # permission_classes=(IsAuthenticated,)
+
+
+    def post(self, request):
         serializer = CreateSeatsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        ConcertId = serializer.validated_data.get('ConcertId')
+        seats = serializer.save()
+        print(seats.Rowid)
+        # Create the specified number of rows for the new concert
+        number_of_seats = seats.NumberofSeat
         
-        if Seat.objects.filter(ConcertId=ConcertId).exists():
-            return Response({"message": "تکراری بودن صندلی ها"}, status=status.HTTP_400_BAD_REQUEST)
+        seats_to_create = [
+            Seat(SeatId=seats,ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i+1)
+            for i in range(number_of_seats)
+        ]
+        Seat.objects.bulk_create(seats_to_create)
         
-        else:
-            serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get(self, request, id=None):
         if id is not None:
