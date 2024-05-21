@@ -10,7 +10,7 @@ from django.contrib.auth.models import AbstractUser
 class Customer(AbstractUser):
     CustomerName = models.CharField(max_length=100)
     CustomerLocation = models.CharField(max_length=40)
-    is_admin = models.BooleanField()
+    is_admin = models.BooleanField(default=False)
 
     first_name = None
     last_name = None

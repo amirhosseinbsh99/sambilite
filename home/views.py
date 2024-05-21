@@ -209,7 +209,7 @@ class ConcertDetail(APIView):
         concert_serializer = ConcertSerializer(concerts, many=True)
         seat_serializer = SeatSerializer(seats, many=True)
         sans_serializer = SansSerializer(sans, many=True)
-
+        
         return Response({
         'concerts': concert_serializer.data,
         'seats': seat_serializer.data,
@@ -239,13 +239,19 @@ class SeatsAdminView(APIView):
         data = request.data
         data['ConcertId'] = id
         data['Rowid'] = Rowid
-        
+        seatnumber = data['NumberofSeat']
         serializer = CreateSeatsSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         seats = serializer.save()
+        print (seatnumber)
+        try:
+            row = Rows.objects.get(ConcertId=id, Rowid=Rowid)
+        except Rows.DoesNotExist:
+            return Response({"error": "Row not found"}, status=status.HTTP_404_NOT_FOUND)
         
+        Rows(NumberofSeat=seatnumber)
         # Create the specified number of seats for the given row and concert
-        number_of_seats = seats.Rowid.NumberofSeat
+        number_of_seats = seatnumber
         seats_to_create = [
             Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i + 1)
             for i in range(number_of_seats)
