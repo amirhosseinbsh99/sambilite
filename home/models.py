@@ -22,7 +22,7 @@ class Concert(models.Model):
     ConcertImage = models.ImageField(upload_to = 'blog/' , null = True , blank = True)
     ConcertLocation = models.CharField(max_length=40)
     ArtistName = models.CharField(max_length=100)
-    ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
+    ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='ComingSoon')
     NumberofRows = models.IntegerField() 
 
     def __str__(self):
@@ -47,7 +47,6 @@ class Rows(models.Model):
     NumberofSeat = models.IntegerField(blank=True,null=True)
     def str(self):
         return f"{self.Rowid} - {self.ConcertId}"
-#DROPLIST
 
 class Seat(models.Model):
     SEAT_STATUS_CHOICES = [
@@ -64,6 +63,7 @@ class Seat(models.Model):
     SeatId = models.AutoField(primary_key=True)
     SeatNumber = models.IntegerField(blank=True,null=True)
     SeatStatus = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
+    SeatPrice = models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True) 
     
 
 
@@ -74,6 +74,8 @@ class Sans(models.Model):
     SansNumber = models.IntegerField(blank=True)
     SansTime = models.TimeField(blank=False)
     ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
+    #uncomment after seats created
+    #SeatId = models.ForeignKey(Seat, on_delete=models.CASCADE)
 
 
 class Ticket(models.Model):

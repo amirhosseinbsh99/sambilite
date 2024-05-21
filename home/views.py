@@ -240,30 +240,39 @@ class SeatsAdminView(APIView):
         data['ConcertId'] = id
         data['Rowid'] = Rowid
         seatnumber = data['NumberofSeat']
+        seatprice = data['RowPrice']  # Assuming SeatPrice is provided in the request
+        rowarea = data['RowArea']  # Retrieve Rowarea from the posted data
         serializer = CreateSeatsSerializer(data=data)
         serializer.is_valid(raise_exception=True)
+
+        # Save the serialized data
         seats = serializer.save()
-        print (seatnumber)
+
+        # Update the NumberofSeat, Rowprice, and RowArea fields in the Rows model
         try:
             row = Rows.objects.get(ConcertId=id, Rowid=Rowid)
+            row.NumberofSeat = seatnumber
+            row.RowPrice = seatprice  # Set Rowprice equal to SeatPrice
+            row.RowArea = rowarea  # Set RowArea to the posted value
+            row.save()
         except Rows.DoesNotExist:
             return Response({"error": "Row not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        Rows(NumberofSeat=seatnumber)
-        # Create the specified number of seats for the given row and concert
+
+        # Create the seats
         number_of_seats = seatnumber
         seats_to_create = [
-            Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i + 1)
+            Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i + 1, SeatPrice=seatprice)
             for i in range(number_of_seats)
         ]
         Seat.objects.bulk_create(seats_to_create)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
     def get(self, request, id, Rowid):
         # Retrieve seats for the given concert and row
         seats = Seat.objects.filter(ConcertId=id, Rowid=Rowid)
-        serializer = CreateSeatsSerializer(seats, many=True)
+        serializer = SeatSerializer(seats, many=True)
         return Response(serializer.data)
 
 
@@ -313,7 +322,7 @@ class SansAdminView(APIView):
     def get(self, request, id=None):
         if id is not None:
 
-            seat = Sans.objects.get(se_id=id)
+            seat = Seat.objects.get(Seatid=id)
             serializer = CreateSansSerializer(seat)
             return Response(serializer.data)
         else:

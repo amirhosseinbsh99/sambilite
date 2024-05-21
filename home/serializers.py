@@ -33,10 +33,7 @@ class ConcertDetailSerializer(serializers.ModelSerializer):
         model = Concert
         fields = ['ConcertName', 'ConcertType', 'ConcertDate', 'ConcertAddress', 'ConcertStatus', 'ConcertImage']
 
-class SeatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Seat
-        fields = ['SeatRow', 'SeatArea','SeatPrice']
+
 
 
 
@@ -57,12 +54,24 @@ class GetRowSerializer(serializers.ModelSerializer):
         model = Rows
         fields = "__all__"
 
+
 class CreateSeatsSerializer(serializers.ModelSerializer):
     Row = GetRowSerializer(read_only=True, source='Rowid')
     NumberofSeat = serializers.IntegerField(source='Rowid.NumberofSeat', read_only=True)
 
+    RowNumber = serializers.IntegerField(read_only=True, source='Rowid.RowNumber')
+    RowPrice = serializers.IntegerField(read_only=True, source='Rowid.RowPrice')
+    RowArea = serializers.CharField(read_only=True, source='Rowid.RowArea')
+    RowPrice = serializers.IntegerField(read_only=True, source='Rowid.RowPrice')
+
+
     class Meta:
         model = Seat
-        fields = ['Row', 'ConcertId', 'Rowid', 'NumberofSeat']
-        
+        fields = ['Row', 'ConcertId', 'Rowid','RowNumber', 'NumberofSeat','RowArea','RowPrice','SeatPrice']    
 
+class SeatSerializer(serializers.ModelSerializer):
+    Row = GetRowSerializer(read_only=True, source='Rowid')
+    class Meta:
+        model = Seat
+        fields = ['Row','SeatId','SeatNumber','SeatPrice','SeatStatus']
+        
