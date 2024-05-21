@@ -1,5 +1,5 @@
 from django.urls import path
-from home.views import ConcertAdminView,ListConcertView,SansAdminView,ConcertSearchView,ConcertDetail,SeatsAdminView,RowsAdminView
+from home.views import ConcertAdminView,ListConcertView,SansAdminView,ConcertSearchView,ConcertDetail,SeatsAdminView,RowsAdminView,UpdateSeatView
 from django.views.generic import TemplateView
 
 
@@ -15,7 +15,8 @@ urlpatterns = [
         path('Concerts/<int:id>/', ConcertDetail.as_view(), name='ConcertDetail'),
         path('co-admin/Seats/<int:id>/', SeatsAdminView.as_view(), name='EditSeatsAdminView'),
         path('co-admin/Rows/', RowsAdminView.as_view(), name='RowsAdminView'),
-        path('co-admin/Concerts/<int:id>/Row/<int:Rowid>/Seats/create', SeatsAdminView.as_view(), name='SeatsAdminView'),
+        path('co-admin/Concerts/<int:id>/Row/<int:Rowid>/Seats/create', SeatsAdminView.as_view(), name='CreateSeatsAdminView'),
+        path('co-admin/Concerts/<int:id>/Row/<int:Rowid>/Seats/<int:SeatId>/', UpdateSeatView.as_view(), name='UpdateSeatsAdminView'),
         #path('co-admin/Concerts/<int:id>/Seats/<int:row_id>/generate-seats/<int:start>/<int:end>/', GenerateSeats.as_view(), name='GenerateSeats'),
         path('co-admin/Sans/create/', SansAdminView.as_view(), name='CreateSansAdminView'),
         path('co-admin/Sans/<int:id>/', SansAdminView.as_view(), name='EditSansAdminView'),

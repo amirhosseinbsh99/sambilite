@@ -2,11 +2,11 @@ from rest_framework.response import Response
 from .models import Concert,Seat,Sans,Rows
 from accounts.models import Customer
 from rest_framework import generics
-from .serializers import ConcertSerializer,CreateConcertSerializer,RowsSerializer,SeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,RowsSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import ListAPIView,CreateAPIView
+from rest_framework.generics import ListAPIView,CreateAPIView,UpdateAPIView
 from rest_framework import viewsets
 from django.utils import timezone
 from datetime import timedelta,datetime
@@ -248,25 +248,43 @@ class SeatsAdminView(APIView):
         # Save the serialized data
         seats = serializer.save()
 
-        # Update the NumberofSeat, Rowprice, and RowArea fields in the Rows model
+        # Update the NumberofSeat, RowPrice, and RowArea fields in the Rows model
         try:
             row = Rows.objects.get(ConcertId=id, Rowid=Rowid)
             row.NumberofSeat = seatnumber
-            row.RowPrice = seatprice  # Set Rowprice equal to SeatPrice
+            row.RowPrice = seatprice  # Set RowPrice equal to SeatPrice
             row.RowArea = rowarea  # Set RowArea to the posted value
             row.save()
         except Rows.DoesNotExist:
             return Response({"error": "Row not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Create the seats
-        number_of_seats = seatnumber
-        seats_to_create = [
-            Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i + 1, SeatPrice=seatprice)
-            for i in range(number_of_seats)
-        ]
-        Seat.objects.bulk_create(seats_to_create)
+        # Retrieve existing seat numbers
+        existing_seat_numbers = set(
+            Seat.objects.filter(ConcertId=id, Rowid=Rowid).values_list('SeatNumber', flat=True)
+        )
+
+        # Create the seats if they do not already exist
+        seats_to_create = []
+        for i in range(seatnumber):
+            seat_number = i + 1
+            if seat_number not in existing_seat_numbers:
+                seats_to_create.append(
+                    Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=seat_number, SeatPrice=seatprice)
+                )
+
+        if seats_to_create:
+            Seat.objects.bulk_create(seats_to_create)
+        else:
+            ## IF NULL NEEDED DELETE THIS 
+            Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True).delete()
+            return Response({"error": "All seats already exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
 
 
     def get(self, request, id, Rowid):
@@ -277,22 +295,81 @@ class SeatsAdminView(APIView):
 
 
 
-    def put(self, request, id):
+    def put(self, request, id, Rowid, SeatId):
         # Retrieve the seat object to update
-        seat_obj = Seat.objects.get(ConcertId=id)
+        data = request.data
 
+        seatnumber=0
 
-
-        # Update the seat object with the request data
-        serializer = CreateSeatsSerializer(instance=seat_obj, data=request.data)
+        serializer = SeatSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        Update = serializer.save()
+        try:
+            row = Rows.objects.get(ConcertId=id, Rowid=Rowid)
+            number_of_seat = row.NumberofSeat
+        except Rows.DoesNotExist:
+            return Response({"error": "Row not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+        try:
+
+            seat = Seat.objects.get(ConcertId=id, Rowid=Rowid , SeatId=SeatId)
+
+            seat.SeatNumber = seatnumber
+            seat.SeatStatus = Update.SeatStatus
+            for i in range(number_of_seat):
+                if seat.SeatStatus =='space':
+                    seat.SeatNumber=None
+                else:
+                    seat.SeatNumber=i + 1
+
+
+
+            seat.save()
+        except Rows.DoesNotExist:
+            return Response({"error": "Row not found"}, status=status.HTTP_404_NOT_FOUND)
         
 
 class SelectSeat(APIView):
     queryset = Seat.objects.all()
     serializer_class = SeatSerializer
 
+
+
+
+class UpdateSeatView(generics.UpdateAPIView):
+    queryset = Seat.objects.all()
+    serializer_class = UpdateSeatSerializer
+    lookup_field = 'SeatId'
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        data = request.data
+
+        # Perform the update
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        # Check if the seat status is 'space' and SeatNumber is None
+        if instance.SeatStatus == 'space' or instance.SeatNumber is None:
+            instance.SeatStatus = 'space'
+            instance.SeatNumber = None
+            self.rename_seat_numbers(instance.ConcertId, instance.Rowid)
+
+        return Response(serializer.data)
+
+    def rename_seat_numbers(self, concert_id, row_id):
+        seats = Seat.objects.filter(ConcertId=concert_id, Rowid=row_id).order_by('SeatId')
+        seat_number = 1
+        for seat in seats:
+            if seat.SeatStatus != 'space':  # Only update seats that are not 'space'
+                seat.SeatNumber = seat_number
+                seat_number += 1
+            else:
+                seat.SeatNumber = None  # Ensure 'space' seats have SeatNumber as None
+            seat.save()
 
 
 
@@ -304,7 +381,6 @@ class SansAdminView(APIView):
         serializer.is_valid(raise_exception=True)
         SansNumber = serializer.validated_data.get('SansNumber')
         ConcertId = serializer.validated_data.get('ConcertId')
-        print(ConcertId)
         SansTime = serializer.validated_data.get('SansTime')
         SansId = serializer.validated_data.get('SansId')
         if Sans.objects.filter(SansId=SansId).exists():

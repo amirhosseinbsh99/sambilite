@@ -26,7 +26,7 @@ class Concert(models.Model):
     NumberofRows = models.IntegerField() 
 
     def __str__(self):
-        return f"{self.ConcertId} - {self.ConcertName}"
+        return f"{'concertid: ',self.ConcertId} - {self.ConcertName}"
     
     
     
@@ -42,11 +42,12 @@ class Rows(models.Model):
     ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
     Rowid = models.AutoField(primary_key=True)
     RowNumber = models.IntegerField()
-    RowPrice =  models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True) 
+    RowPrice =  models.IntegerField(null=True,blank=True) 
     RowArea = models.CharField(max_length=7, choices=Row_Area_CHOICES, blank=True)
     NumberofSeat = models.IntegerField(blank=True,null=True)
-    def str(self):
-        return f"{self.Rowid} - {self.ConcertId}"
+    def __str__(self):
+        return f"{'rowid: ',self.Rowid,'rowNumber: ',self.RowNumber} - {self.ConcertId.ConcertName} - {self.Rowid}"
+    
 
 class Seat(models.Model):
     SEAT_STATUS_CHOICES = [
@@ -63,9 +64,9 @@ class Seat(models.Model):
     SeatId = models.AutoField(primary_key=True)
     SeatNumber = models.IntegerField(blank=True,null=True)
     SeatStatus = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
-    SeatPrice = models.DecimalField(max_digits=10,decimal_places=0,null=True,blank=True) 
+    SeatPrice = models.IntegerField(null=True,blank=True) 
     
-
+   
 
 
 

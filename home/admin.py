@@ -13,13 +13,14 @@ class ConcertAdmin(admin.ModelAdmin):
 
 class RowsAdmin(admin.ModelAdmin):
     list_display = ("ConcertId", "Rowid", "RowNumber","RowPrice","RowArea")
-    
+
+
 class BlogAdmin(admin.ModelAdmin):
 
     list_display = ("BlogTitle", "BlogDescription", "BlogType")
 
 class SeatAdmin(admin.ModelAdmin):
-    list_display = ('SeatId','SeatNumber','ConcertId', 'SeatStatus')
+    list_display = ('SeatId','Rowid','SeatNumber','ConcertId', 'SeatStatus')
 
 class SansAdmin(admin.ModelAdmin):
 
