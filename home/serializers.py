@@ -35,7 +35,10 @@ class ConcertDetailSerializer(serializers.ModelSerializer):
 
 
 
-
+class CreateRowsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rows
+        fields = ['ConcertId', 'RowNumber', 'NumberofSeat', 'RowPrice', 'RowArea']
 
 
 class SansSerializer(serializers.ModelSerializer):

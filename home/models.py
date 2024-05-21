@@ -24,6 +24,8 @@ class Concert(models.Model):
     ArtistName = models.CharField(max_length=100)
     ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='ComingSoon')
     NumberofRows = models.IntegerField() 
+    NumberofSans = models.IntegerField() 
+
 
     def __str__(self):
         return f"{'concertid: ',self.ConcertId} - {self.ConcertName}"
@@ -75,8 +77,8 @@ class Sans(models.Model):
     SansNumber = models.IntegerField(blank=True)
     SansTime = models.TimeField(blank=False)
     ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
-    #uncomment after seats created
-    #SeatId = models.ForeignKey(Seat, on_delete=models.CASCADE)
+    Rowid = models.ForeignKey(Rows, on_delete=models.CASCADE)
+    SeatId = models.ForeignKey(Seat, on_delete=models.CASCADE)
 
 
 class Ticket(models.Model):

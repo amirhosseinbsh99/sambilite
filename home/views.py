@@ -5,12 +5,11 @@ from rest_framework import generics
 from .serializers import ConcertSerializer,CreateConcertSerializer,RowsSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import ListAPIView,CreateAPIView,UpdateAPIView
+from rest_framework.generics import ListAPIView,UpdateAPIView
 from rest_framework import viewsets
 from django.utils import timezone
 from datetime import timedelta,datetime
-from rest_framework import filters  
+from rest_framework import filters 
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 import requests
@@ -420,16 +419,7 @@ class SansAdminView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-# class MakePayment(self,Serializer):
-
-#     #serializer_class = PaymentSerializer
-        
-#     def perform_create(self, serializer):
-#         # Assuming you have implemented a payment gateway integration
-#         # Here you would process the payment and update the seat status to 'Selected'
-#         serializer.save(customer=self.request.user)
-
-
+    
 
 
 
