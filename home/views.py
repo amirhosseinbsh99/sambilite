@@ -123,18 +123,29 @@ class ConcertSearchView(ListAPIView):
      ##* for admin *##
 class ConcertAdminView(APIView):
     def post(self, request):
+        data = request.data
+        SansTime = data.get('SansTime')
         serializer = CreateConcertSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         concert = serializer.save()
-        
-        # Create the specified number of rows for the new concert
+
+        number_of_Sans = concert.NumberofSans
         number_of_rows = concert.NumberofRows
-        rows_to_create = [
-            Rows(ConcertId=concert, RowNumber=i+1)
-            for i in range(number_of_rows)
+
+        Sans_to_create = [
+            Sans(ConcertId=concert, SansNumber=i+1, SansTime=SansTime)
+            for i in range(number_of_Sans)
         ]
-        Rows.objects.bulk_create(rows_to_create)
-        
+        Sans.objects.bulk_create(Sans_to_create)
+    
+        # Create Rows for each Sans
+        for sans in Sans.objects.filter(ConcertId=concert):
+            rows_to_create = [
+                Rows(ConcertId=concert, SansId=sans, RowNumber=i+1)
+                for i in range(number_of_rows)
+            ]
+            Rows.objects.bulk_create(rows_to_create)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get(self, request, id=None):  

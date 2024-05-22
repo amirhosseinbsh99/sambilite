@@ -31,7 +31,13 @@ class Concert(models.Model):
         return f"{'concertid: ',self.ConcertId} - {self.ConcertName}"
     
     
+class Sans(models.Model):
+    SansId = models.AutoField(primary_key=True)
+    SansNumber = models.IntegerField(blank=True)
+    SansTime = models.TimeField(blank=False)
+    ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
     
+  
 
 class Rows(models.Model):
     Row_Area_CHOICES = [
@@ -47,6 +53,7 @@ class Rows(models.Model):
     RowPrice =  models.IntegerField(null=True,blank=True) 
     RowArea = models.CharField(max_length=7, choices=Row_Area_CHOICES, blank=True)
     NumberofSeat = models.IntegerField(blank=True,null=True)
+    SansId = models.ForeignKey(Sans, related_name='rows', on_delete=models.CASCADE)
     def __str__(self):
         return f"{'rowid: ',self.Rowid,'rowNumber: ',self.RowNumber} - {self.ConcertId.ConcertName} - {self.Rowid}"
     
@@ -72,13 +79,6 @@ class Seat(models.Model):
 
 
 
-class Sans(models.Model):
-    SansId = models.AutoField(primary_key=True)
-    SansNumber = models.IntegerField(blank=True)
-    SansTime = models.TimeField(blank=False)
-    ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
-    Rowid = models.ForeignKey(Rows, on_delete=models.CASCADE)
-    SeatId = models.ForeignKey(Seat, on_delete=models.CASCADE)
 
 
 class Ticket(models.Model):

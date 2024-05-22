@@ -8,14 +8,25 @@ class RowsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ConcertSerializer(serializers.ModelSerializer):
+class SansSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Sans
+        fields = "__all__","SansTime"
 
+
+class ConcertSerializer(serializers.ModelSerializer):
+    Sans = SansSerializer(read_only=True, source='SansId')
+    SansTime = SansSerializer(read_only=True, source='SansId.SansTime')
     class Meta:
         model = Concert
         fields = "__all__"
 
+
+
 class CreateConcertSerializer(serializers.ModelSerializer):
     ConcertImage = serializers.ImageField(required=False)
+
     class Meta:
         model = Concert
         fields="__all__"
@@ -41,11 +52,7 @@ class CreateRowsSerializer(serializers.ModelSerializer):
         fields = ['ConcertId', 'RowNumber', 'NumberofSeat', 'RowPrice', 'RowArea']
 
 
-class SansSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Sans
-        fields = "__all__"
 class CreateSansSerializer(serializers.ModelSerializer):
 
     class Meta:
