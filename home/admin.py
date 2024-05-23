@@ -12,7 +12,7 @@ class ConcertAdmin(admin.ModelAdmin):
 
 
 class RowsAdmin(admin.ModelAdmin):
-    list_display = ("ConcertId", "Rowid", "RowNumber","RowPrice","RowArea")
+    list_display = ("ConcertId","SansId", "Rowid","RowNumber","RowPrice","RowArea")
 
 
 class BlogAdmin(admin.ModelAdmin):

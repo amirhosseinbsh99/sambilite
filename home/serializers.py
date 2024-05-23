@@ -12,12 +12,11 @@ class SansSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Sans
-        fields = "__all__","SansTime"
+        fields = "__all__"
 
 
 class ConcertSerializer(serializers.ModelSerializer):
     Sans = SansSerializer(read_only=True, source='SansId')
-    SansTime = SansSerializer(read_only=True, source='SansId.SansTime')
     class Meta:
         model = Concert
         fields = "__all__"
@@ -57,7 +56,7 @@ class CreateSansSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sans
-        fields ="__all__"
+        fields =['ConcertId','SansTime','SansId','SansNumber']
 
 class GetRowSerializer(serializers.ModelSerializer):
     class Meta:

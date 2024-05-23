@@ -17,7 +17,7 @@ class Concert(models.Model):
     ConcertId = models.AutoField(primary_key=True)
     ConcertName = models.CharField(max_length=100)
     ConcertType = models.CharField(max_length=10,choices=CONCERT_TYPE_CHOICES,default='music')
-    ConcertDate = models.DateTimeField(max_length=20)
+    ConcertDate = models.DateField(max_length=20)
     ConcertAddress = models.CharField(max_length=250, blank=True)
     ConcertImage = models.ImageField(upload_to = 'blog/' , null = True , blank = True)
     ConcertLocation = models.CharField(max_length=40)
@@ -34,8 +34,10 @@ class Concert(models.Model):
 class Sans(models.Model):
     SansId = models.AutoField(primary_key=True)
     SansNumber = models.IntegerField(blank=True)
-    SansTime = models.TimeField(blank=False)
+    SansTime = models.TimeField(null=True,blank=True)
     ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
+    def __str__(self):
+        return f"{'SansId: ',self.SansId} - {'sansnumber: ',self.SansNumber} - {self.ConcertId.ConcertName}"
     
   
 
@@ -74,7 +76,6 @@ class Seat(models.Model):
     SeatNumber = models.IntegerField(blank=True,null=True)
     SeatStatus = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
     SeatPrice = models.IntegerField(null=True,blank=True) 
-    
    
 
 
