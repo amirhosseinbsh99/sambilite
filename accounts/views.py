@@ -1,13 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import Customer
 from .serializers import CreateCustomerSerializer,CustomerSerializer,CustomerLoginSerializer
-from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import BasePermission
 
 # CHANGE TO KHARID BILITE
 class CustomerLoginAPIView(APIView):
@@ -67,23 +66,7 @@ class CreateCustomerView(CreateAPIView):
     queryset = Customer.objects.all()
     serializer_class = CreateCustomerSerializer
 
-# no register for now
-# class CustomerRegister(APIView):
-#     def post(self, request):
-#         serializer = CustomerRegiserSerializer(data=request.data)
-#         data = {}
-
-#         if serializer.is_valid():
-#             account = serializer.save()
-
-#             data['response'] = 'اکانت شما با موفقیت ایجاد شد'
-#             data['name'] = account.cu_name
-#             data['email'] = account.cu_email
-
-#             token, _ = Token.objects.get_or_create(user=account)
-#             data['token'] = token.key
-#         else:
-#             data = serializer.errors
-
-#         return Response(data)
-
+class IsAdminUser(BasePermission):
+    def has_permission(self, request, view):
+        # Check if the user is authenticated and is an admin
+        return bool(request.user and request.user.is_authenticated and request.user.is_admin)
