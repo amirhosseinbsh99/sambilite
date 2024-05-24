@@ -65,17 +65,17 @@ class GetRowSerializer(serializers.ModelSerializer):
 
 
 class CreateSeatsSerializer(serializers.ModelSerializer):
-    Row = GetRowSerializer(read_only=True, source='Rowid')
     NumberofSeat = serializers.IntegerField(source='Rowid.NumberofSeat', read_only=True)
-
     RowNumber = serializers.IntegerField(read_only=True, source='Rowid.RowNumber')
     RowPrice = serializers.IntegerField(read_only=True, source='Rowid.RowPrice')
     RowArea = serializers.CharField(read_only=True, source='Rowid.RowArea')
 
-
     class Meta:
         model = Seat
-        fields = ['Row', 'ConcertId', 'Rowid','RowNumber', 'NumberofSeat','RowArea','RowPrice','SeatPrice','SeatNumber']    
+        fields = ['NumberofSeat','ConcertId','Rowid', 'RowNumber','SeatNumber','SeatId','RowArea', 'RowPrice', 'SeatPrice']
+
+  
+    
 
 class SeatSerializer(serializers.ModelSerializer):
     Row = GetRowSerializer(read_only=True, source='Rowid')
@@ -88,3 +88,8 @@ class UpdateSeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
         fields = ['Row','SeatId','SeatPrice','SeatStatus']
+
+class UpdateSansSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sans
+        fields = ['SansTime']

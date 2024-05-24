@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from .models import Concert,Seat,Sans,Rows
 from accounts.models import Customer
 from rest_framework import generics
-from .serializers import ConcertSerializer,CreateConcertSerializer,RowsSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,ConcertDetailSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer,UpdateSansSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView,UpdateAPIView
@@ -122,7 +122,7 @@ class ConcertSearchView(ListAPIView):
 
      ##* for admin *##
 class ConcertAdminView(APIView):
-    def post(self, request,sanid):
+    def post(self, request):
         data = request.data
         serializer = CreateConcertSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -136,7 +136,7 @@ class ConcertAdminView(APIView):
             for i in range(number_of_Sans)
         ]
         Sans.objects.bulk_create(Sans_to_create)
-    
+
         # Create Rows for each Sans
         for sans in Sans.objects.filter(ConcertId=concert):
             rows_to_create = [
@@ -147,40 +147,29 @@ class ConcertAdminView(APIView):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def get(self, request, id, sanid):
-        if id is not None and sanid is not None:
+    def get(self, request, id=None):
+        if id is not None:
             try:
                 concert = Concert.objects.get(ConcertId=id)
-                sans = Sans.objects.filter(SansId=sanid)  # Use filter instead of get
                 serializer = ConcertSerializer(concert)
-                sans_serializer = SansSerializer(sans, many=True)
                 return Response({
                     'concerts': serializer.data,
-                    'sans': sans_serializer.data
                 }, status=status.HTTP_200_OK)
             except Concert.DoesNotExist:
                 return Response({'error': 'Concert not found'}, status=status.HTTP_404_NOT_FOUND)
-            except Sans.DoesNotExist:
-                return Response({'error': 'Sans not found'}, status=status.HTTP_404_NOT_FOUND)
-        elif sanid is not None:
+        else:
             # List all concerts
             all_concerts = Concert.objects.all()
-            all_sans = Sans.objects.all()
             serializer = ConcertSerializer(all_concerts, many=True)
-            sans_serializer = SansSerializer(all_sans, many=True)
-            
             return Response({
                 'concerts': serializer.data,
-                'sans': sans_serializer.data
             }, status=status.HTTP_200_OK)
-
-
-    
 
     def put(self, request, id):
         try:
             # Retrieve the concert object to update
             concert_obj = Concert.objects.get(ConcertId=id)
+            old_number_of_Sans = concert_obj.NumberofSans
             
             # Update the concert object with the request data
             serializer = CreateConcertSerializer(instance=concert_obj, data=request.data)
@@ -196,12 +185,36 @@ class ConcertAdminView(APIView):
                 # Delete the existing rows
                 existing_rows.delete()
                 
-                # Create the new rows
-                new_rows_to_create = [
-                    Rows(ConcertId=updated_concert, RowNumber=i+1)
+
+                # Create Rows for each Sans
+            for sans in Sans.objects.filter(ConcertId=updated_concert):
+                rows_to_create = [
+                    Rows(ConcertId=updated_concert, SansId=sans, RowNumber=i+1)
                     for i in range(current_number_of_rows)
                 ]
-                Rows.objects.bulk_create(new_rows_to_create)
+                Rows.objects.bulk_create(rows_to_create)
+
+            # Update the Sans if the NumberofSans has changed
+            new_number_of_Sans = updated_concert.NumberofSans
+            if old_number_of_Sans != new_number_of_Sans:
+                # Delete existing Sans and their rows
+                Sans.objects.filter(ConcertId=updated_concert).delete()
+                
+                # Create new Sans individually
+                for i in range(new_number_of_Sans):
+                    new_sans = Sans(ConcertId=updated_concert, SansNumber=i+1)
+                    new_sans.save()
+                
+                # Query the database to get the newly created Sans with their primary keys
+                new_sans_instances = Sans.objects.filter(ConcertId=updated_concert)
+                
+                # Create Rows for each new Sans
+                for sans in new_sans_instances:
+                    rows_to_create = [
+                        Rows(ConcertId=updated_concert, SansId=sans, RowNumber=j+1)
+                        for j in range(current_number_of_rows)
+                    ]
+                    Rows.objects.bulk_create(rows_to_create)
                 
             # Return the updated concert data
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -220,10 +233,10 @@ class ConcertAdminView(APIView):
 #if seat status changed change its icon to other color it means change its icon
 class ConcertDetail(APIView):
   
-    def get(self,request,id,sanid):
+    def get(self,request,id,sansid):
         concerts = Concert.objects.all()
         seats = Seat.objects.all()
-        sans = Sans.objects.filter(SansId=sanid)
+        sans = Sans.objects.filter(SansId=sansid)
         
 
         concert_serializer = ConcertSerializer(concerts, many=True)
@@ -254,46 +267,55 @@ class RowsAdminView(APIView):
     
 class SeatsAdminView(APIView):
     # permission_classes = (IsAuthenticated,)
+    
     def post(self, request, id, Rowid):
-            data = request.data
-            data['ConcertId'] = id
-            data['Rowid'] = Rowid
-            seatnumber = data['NumberofSeat']
-            seatprice = data['RowPrice']  # Assuming SeatPrice is provided in the request
-            rowarea = data['RowArea']  # Retrieve Rowarea from the posted data
-            serializer = CreateSeatsSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            # Save the serialized data
-            seats = serializer.save()
-            # Update the NumberofSeat, RowPrice, and RowArea fields in the Rows model
-            try:
-                row = Rows.objects.get(ConcertId=id, Rowid=Rowid)
-                row.NumberofSeat = seatnumber
-                row.RowPrice = seatprice  # Set RowPrice equal to SeatPrice
-                row.RowArea = rowarea  # Set RowArea to the posted value
-                row.save()
-            except Rows.DoesNotExist:
-                return Response({"error": "Row not found"}, status=status.HTTP_404_NOT_FOUND)
-            # Retrieve existing seat numbers
-            existing_seat_numbers = set(
-                Seat.objects.filter(ConcertId=id, Rowid=Rowid).values_list('SeatNumber', flat=True)
-            )
-            # Create the seats if they do not already exist
-            seats_to_create = []
-            for i in range(seatnumber):
-                seat_number = i + 1
-                if seat_number not in existing_seat_numbers:
-                    seats_to_create.append(
-                        Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=seat_number, SeatPrice=seatprice)
-                    )
-            if seats_to_create:
-                Seat.objects.bulk_create(seats_to_create)
-            else:
-                ## IF NULL NEEDED DELETE THIS 
-                Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True).delete()
-                return Response({"error": "All seats already exist"}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        data['ConcertId'] = id
+        data['Rowid'] = Rowid
+
+        seatnumber = data['NumberofSeat']
+        seatprice = data['RowPrice']  # Assuming SeatPrice is provided in the request
+        rowarea = data['RowArea']  # Retrieve RowArea from the posted data
+
+        serializer = CreateSeatsSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        
+        # Save the serialized data
+        seats = serializer.save()
+
+        # Update the NumberofSeat, RowPrice, and RowArea fields in the Rows model
+        try:
+            row = Rows.objects.get(ConcertId=id, Rowid=Rowid)
+            row.NumberofSeat = seatnumber
+            row.RowPrice = seatprice  # Set RowPrice equal to SeatPrice
+            row.RowArea = rowarea  # Set RowArea to the posted value
+            row.save()
+        except Rows.DoesNotExist:
+            return Response({"error": "Row not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Retrieve existing seat numbers
+        existing_seat_numbers = set(
+            Seat.objects.filter(ConcertId=id, Rowid=Rowid).values_list('SeatNumber', flat=True)
+        )
+
+        # Create the seats if they do not already exist
+        seats_to_create = [
+            Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i + 1, SeatPrice=seatprice)
+            for i in range(seatnumber)
+            if (i + 1) not in existing_seat_numbers
+        ]
+
+        # Perform bulk creation after collecting all seats to be created
+        if seats_to_create:
+            Seat.objects.bulk_create(seats_to_create)
             
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            ## IF NULL NEEDED DELETE THIS 
+            
+            return Response({"error": "All seats already exist"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True,SeatStatus='Empty').delete()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get(self, request, id, Rowid):
         # Retrieve seats for the given concert and row
@@ -397,9 +419,9 @@ class SansAdminView(APIView):
         if id is not None :
             try:
                 concert = Concert.objects.get(ConcertId=id)
-                sans = Sans.objects.all()  # Use filter instead of get
+                all_sans = Sans.objects.filter(ConcertId=id)
                 serializer = ConcertSerializer(concert)
-                sans_serializer = SansSerializer(sans, many=True)
+                sans_serializer = SansSerializer(all_sans, many=True)
                 return Response({
                     'concerts': serializer.data,
                     'sans': sans_serializer.data
@@ -408,18 +430,20 @@ class SansAdminView(APIView):
                 return Response({'error': 'Concert not found'}, status=status.HTTP_404_NOT_FOUND)
             except Sans.DoesNotExist:
                 return Response({'error': 'Sans not found'}, status=status.HTTP_404_NOT_FOUND)
-        elif sanid is not None:
+        else:
             # List all Sanes
             all_concerts = Concert.objects.all()
-            all_sans = Sans.objects.all()
+            
             serializer = ConcertSerializer(all_concerts, many=True)
-            sans_serializer = SansSerializer(all_sans, many=True)
+            
 
 
 
     def put(self, request, id):
         # Retrieve the seat object to update
         Sans_obj = Sans.objects.get(ConcertId=id)
+     #   Sans = Sans.objects.filter(SansId=sansid)  # Use filter instead of get
+
 
 
 
@@ -429,6 +453,20 @@ class SansAdminView(APIView):
         serializer.save()
 
     
+class SansUpdateView(UpdateAPIView):
+    queryset = Sans.objects.all()
+    serializer_class = UpdateSansSerializer
+    lookup_field = 'SansId'
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        data = request.data
+
+       # Perform the update
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 
 
