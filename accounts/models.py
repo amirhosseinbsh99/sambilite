@@ -5,12 +5,17 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from .validators import validate_phone_number
 
 
 class Customer(AbstractUser):
     CustomerName = models.CharField(max_length=100)
-    CustomerLocation = models.CharField(max_length=40)
     is_admin = models.BooleanField(default=False)
+    CustomerPhoneNumber = models.CharField(
+        max_length=11,
+        validators=[validate_phone_number]
+    )
+
 
     first_name = None
     last_name = None

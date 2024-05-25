@@ -1,5 +1,6 @@
 from rest_framework.response import Response
-from .models import Concert,Seat,Sans,Rows
+from .models import Concert,Seat,Sans,Rows,Payment,Ticket
+from accounts.models import Customer
 from rest_framework import generics
 from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer,UpdateSansSerializer
 from rest_framework import status
@@ -8,14 +9,14 @@ from rest_framework.generics import ListAPIView,UpdateAPIView
 from django.utils import timezone
 from datetime import timedelta,datetime
 from rest_framework import filters 
+from django.db import transaction
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
+from django.shortcuts import get_object_or_404
 import requests
 import json
 from rest_framework.permissions import IsAuthenticated
 from accounts.views import IsAdminUser
-
-
 
 
 class ListConcertView(ListAPIView):
@@ -24,11 +25,9 @@ class ListConcertView(ListAPIView):
         ip_response = requests.get('https://api.ipify.org/?format=json')
         ip_data = ip_response.json()
         myip = ip_data.get('ip')
-               
         location_response = requests.get(f'http://ip-api.com/json/{myip}')
         location_data = location_response.json()
         city = location_data.get('city')
-
         concerts = Concert.objects.filter(ConcertLocation=city)
         if not concerts.exists():
             concerts = Concert.objects.all()
@@ -190,7 +189,6 @@ class ConcertAdminView(APIView):
                 
                 # get the newly created Sans with primary keys
                 new_sans_instances = Sans.objects.filter(ConcertId=updated_concert)
-                
                 # Create Rows for each new Sans
                 for sans in new_sans_instances:
                     rows_to_create = [
@@ -218,27 +216,95 @@ class ConcertAdminView(APIView):
 
 #if seat status changed change its icon to other color it means change its icon#
 class ConcertDetail(APIView):
-        
-  
-    def get(self,request,id,sansid):
-        try:
-            concerts = Concert.objects.all()
-            seats = Seat.objects.all()
-            sans = Sans.objects.filter(SansId=sansid)
-            
 
-            concert_serializer = ConcertSerializer(concerts, many=True)
-            seat_serializer = SeatSerializer(seats, many=True)
-            sans_serializer = SansSerializer(sans, many=True)
-            
-            return Response({
-            'concerts': concert_serializer.data,
-            'sans' : sans_serializer.data,
-            'seats': seat_serializer.data
-            
-        }, status=status.HTTP_200_OK)
-        except Concert.DoesNotExist:
-            return Response({"error": "کنسرت یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
+    def get(self,request,id):
+        concerts = Concert.objects.filter(ConcertId=id)
+        seats = Seat.objects.filter(ConcertId=id)
+        sans = Sans.objects.filter(ConcertId=id)
+        rows = Rows.objects.filter(ConcertId=id)
+
+        concert_serializer = ConcertSerializer(concerts, many=True)
+        seat_serializer = SeatSerializer(seats, many=True)
+        sans_serializer = SansSerializer(sans, many=True)
+        rows_serializer = GetRowSerializer(rows, many=True)
+        return Response({
+        'concerts': concert_serializer.data,
+        'sans' : sans_serializer.data,
+        'rows' : rows_serializer.data,
+        'seats': seat_serializer.data
+
+    }, status=status.HTTP_200_OK)
+
+    def post(self, request, id):
+        seat_id = request.data.get('seat_id')
+        CustomerName = request.data.get('CustomerName')
+        CustomerPhoneNumber = request.data.get('CustomerPhoneNumber')
+        seat = get_object_or_404(Seat, pk=seat_id, ConcertId=id)
+        
+        if seat.SeatStatus not in ['Empty', 'Empty']:
+            return Response({"error": "Seat is not available."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        with transaction.atomic():
+            seat.SeatStatus = 'Reserving'
+            seat.save()
+
+            # Create temporary user for this transaction
+            temp_user = Customer.objects.create(
+                username=f"{CustomerName}_{CustomerPhoneNumber}",
+                CustomerName=CustomerName,
+                CustomerLocation='Temporary',
+                is_admin=False
+            )
+            temp_user.set_unusable_password()
+            temp_user.save()
+
+            # Process payment (assuming a mock payment processing here)
+            payment_status = 'Pending'
+            payment = Payment.objects.create(
+                TicketId=None,  # To be set later
+                SeatId=seat,
+                PaymentStatus=payment_status,
+                CustomerId=temp_user
+            )
+
+            # Simulate payment process
+            if self.process_payment(payment):  # Assuming this method handles the payment processing
+                payment.PaymentStatus = 'Completed'
+                payment.save()
+
+                # Create ticket
+                ticket = Ticket.objects.create(
+                    Ticket_Serial='some_serial',  # Generate a unique serial here
+                    SansId=seat.SansId,
+                    SeatId=seat,
+                    ConcertId=seat.ConcertId
+                )
+                payment.TicketId = ticket
+                payment.save()
+
+                seat.SeatStatus = 'Reserved'
+                seat.save()
+                return Response({"message": "Payment successful and ticket created."}, status=status.HTTP_201_CREATED)
+            else:
+                payment.PaymentStatus = 'Failed'
+                payment.save()
+
+                # Revert seat status
+                seat.SeatStatus = 'Empty'
+                seat.save()
+
+                # Delete temporary user
+                temp_user.delete()
+
+                return Response({"error": "Payment failed."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+def process_payment(self, payment):
+        # Implement actual payment processing logic here
+        # Return True if payment is successful, otherwise False
+        return True
 
 class RowsAdminView(APIView):
     permission_classes = [IsAdminUser]
@@ -304,7 +370,7 @@ class SeatsAdminView(APIView):
             
         else:
            
-            
+            Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True,SeatStatus='Empty').delete()
             return Response({"error": "صندلی تکراری است"}, status=status.HTTP_400_BAD_REQUEST)
         
         Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True,SeatStatus='Empty').delete()
@@ -460,7 +526,7 @@ class SansUpdateView(generics.UpdateAPIView):
         try:
             obj = queryset.get(**filter_kwargs)
         except Sans.DoesNotExist:
-            raise NotFound({"error": "سانس پیدا نشد"})  # 404 error if sans not found
+            raise NotFound({"error": "سانس پیدا نشد"}) 
         return obj
 
     def update(self, request, *args, **kwargs):
@@ -471,11 +537,3 @@ class SansUpdateView(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-
-
-
-        
-
-    
-
-    

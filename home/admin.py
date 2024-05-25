@@ -5,7 +5,7 @@ from blog.models import Blog
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ("CustomerName","username","CustomerLocation")
+    list_display = ("CustomerName","username","CustomerPhoneNumber")
 
 class ConcertAdmin(admin.ModelAdmin):
     list_display = ("ConcertName","ConcertType","ArtistName","NumberofRows")
@@ -20,7 +20,7 @@ class BlogAdmin(admin.ModelAdmin):
     list_display = ("BlogTitle", "BlogDescription", "BlogType")
 
 class SeatAdmin(admin.ModelAdmin):
-    list_display = ('SeatId','Rowid','SeatNumber','ConcertId', 'SeatStatus')
+    list_display = ('SeatId','Rowid','SeatNumber','SeatPrice','ConcertId', 'SeatStatus')
 
 class SansAdmin(admin.ModelAdmin):
 

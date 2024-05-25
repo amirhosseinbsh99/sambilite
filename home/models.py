@@ -77,6 +77,13 @@ class Seat(models.Model):
     SeatStatus = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
     SeatPrice = models.IntegerField(null=True,blank=True) 
    
+   
+    def select_seat(self):
+        if self.SeatStatus == 'Empty':
+            self.SeatStatus = 'selected'
+            self.save()
+            return True
+        return False
 
 
 
@@ -107,11 +114,5 @@ class Payment(models.Model):
     PaymentStatus = models.CharField(max_length=9, choices=PAYMENT_STATUS_CHOICES, default='Pending')
     CustomerId = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
-    # def __str__(self):
-    #     return f"Payment ID: {self.payment_id}, Ticket ID: {self.ticket_id}, Amount: {self.payment_amount}, Status: {self.payment_status}"    
-    #total price of the seats
-    # @property
-    # def total_price(self):
-    #     total = [for seat in seats]
-
+    
     

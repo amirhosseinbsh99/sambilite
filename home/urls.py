@@ -13,7 +13,6 @@ urlpatterns = [
         path('co-admin/Concerts/<int:id>/Sans/<int:SansId>/', SansUpdateView.as_view(), name='SansUpdateView'),
         path('co-admin/Concerts/<int:id>/Row/<int:Rowid>/Seats/Create/', SeatsAdminView.as_view(), name='CreateSeatsAdminView'),
         path('co-admin/Concerts/<int:id>/Row/<int:Rowid>/Seats/<int:SeatId>/', UpdateSeatView.as_view(), name='UpdateSeatsAdminView'),
-
         #################################### non-admins ##########################################################
         path('', ListConcertView.as_view(), name='ListConcertView'),
         path("Search/", ConcertSearchView.as_view()  , name = "ConcertSearchView"),
