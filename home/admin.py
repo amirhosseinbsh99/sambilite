@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Customer,Concert,Seat,Sans,Rows,Slider
 from blog.models import Blog
-
+from django_jalali.admin.widgets import AdminjDateWidget
 
 
 class CustomerAdmin(admin.ModelAdmin):

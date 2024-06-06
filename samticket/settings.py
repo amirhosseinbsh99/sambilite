@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'home',
     'accounts',
-    'blog'
+    'blog',
+    'django_jalali'
 ]
 
 # LOGIN_REDIRECT_URL = 'Dashboard'

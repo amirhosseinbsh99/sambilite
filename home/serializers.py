@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from home.models import Concert,Seat,Sans,Rows,Slider
+from django_jalali.serializers.serializerfield import JDateField, JDateTimeField
 
 class RowsSerializer(serializers.ModelSerializer):
 
@@ -64,7 +65,7 @@ class CreateSansSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sans
-        fields =['ConcertId','SansTime','SansId','SansNumber']
+        fields =['ConcertId','SansTime','SansId','SansNumber','SansDate']
 
 class GetRowSerializer(serializers.ModelSerializer):
     class Meta:
@@ -98,6 +99,7 @@ class UpdateSeatSerializer(serializers.ModelSerializer):
         fields = ['Row','SeatId','SeatPrice','SeatStatus']
 
 class UpdateSansSerializer(serializers.ModelSerializer):
+    SansDate = JDateField()
     class Meta:
         model = Sans
-        fields = ['SansTime']
+        fields = ['SansTime','SansDate']

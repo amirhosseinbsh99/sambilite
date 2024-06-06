@@ -1,6 +1,6 @@
 from django.db import models
 from accounts.models import Customer
-
+from django_jalali.db import models as jmodels
 
 class Concert(models.Model):
     CONCERT_STATUS_CHOICES = [
@@ -17,7 +17,7 @@ class Concert(models.Model):
     ConcertId = models.AutoField(primary_key=True)
     ConcertName = models.CharField(max_length=100)
     ConcertType = models.CharField(max_length=10,choices=CONCERT_TYPE_CHOICES,default='music')
-    ConcertDate = models.DateField(max_length=20)
+    ConcertDate = jmodels.jDateField(max_length=20)
     ConcertAddress = models.CharField(max_length=250, blank=True)
     ConcertImage = models.ImageField(upload_to = 'blog/' , null = True , blank = True)
     ConcertLocation = models.CharField(max_length=40)
@@ -43,12 +43,18 @@ class Slider(models.Model):
     
     
 class Sans(models.Model):
+    SANS_STATUS = [
+        ('Active', 'Active'),
+        ('Soldout', 'Soldout'),
+    ]
     SansId = models.AutoField(primary_key=True)
     SansNumber = models.IntegerField(blank=True)
-    SansTime = models.TimeField(null=True,blank=True)
+    SansStatus = models.CharField(max_length=20, choices=SANS_STATUS, default='Active')
+    SansTime = models.TimeField(null=True, blank=True)
+    SansDate = jmodels.jDateField(null=True, blank=True)
     ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
     def __str__(self):
-        return f"{'SansId: ',self.SansId} - {'sansnumber: ',self.SansNumber} - {self.ConcertId.ConcertName}"
+        return f"{'SansId: ',self.SansId} - {'sansnumber: ',self.SansNumber} - {self.ConcertId.ConcertName} - {'SansStatus: ',self.SansStatus}"
     
   
 
@@ -121,7 +127,7 @@ class Payment(models.Model):
     PaymentId = models.AutoField(primary_key=True)
     TicketId = models.ForeignKey(Ticket, on_delete=models.CASCADE)
     SeatId = models.ForeignKey(Seat, on_delete=models.CASCADE)
-    PaymentDate = models.DateTimeField(auto_now_add=True)
+    PaymentDate = jmodels.jDateField(auto_now_add=True)
     PaymentStatus = models.CharField(max_length=9, choices=PAYMENT_STATUS_CHOICES, default='Pending')
     CustomerId = models.ForeignKey(Customer, on_delete=models.CASCADE)
 

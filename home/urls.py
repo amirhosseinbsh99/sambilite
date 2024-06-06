@@ -26,9 +26,7 @@ urlpatterns = [
         path('about-us/',TemplateView.as_view(template_name='about-us'),name='about-us'),
         path('contact-us/',TemplateView.as_view(template_name='contact-us'),name='contact-us'),
 
-        #########################################################################################################
-        
-        
+        ###########################################################################################################
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

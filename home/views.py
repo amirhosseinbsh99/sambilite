@@ -105,7 +105,6 @@ class ConcertSearchView(ListAPIView):
      ##* for admin *##
 class ConcertAdminView(APIView):
 
-
     def post(self, request):
         data = request.data
         serializer = CreateConcertSerializer(data=request.data)
@@ -549,7 +548,12 @@ class SansUpdateView(generics.UpdateAPIView):
         except Sans.DoesNotExist:
             raise NotFound({"error": "سانس پیدا نشد"}) 
         return obj
-
+    
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -558,3 +562,7 @@ class SansUpdateView(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
