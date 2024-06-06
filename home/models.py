@@ -22,13 +22,24 @@ class Concert(models.Model):
     ConcertImage = models.ImageField(upload_to = 'blog/' , null = True , blank = True)
     ConcertLocation = models.CharField(max_length=40)
     ArtistName = models.CharField(max_length=100)
-    ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='ComingSoon')
+    ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='Active')
     NumberofRows = models.IntegerField() 
     NumberofSans = models.IntegerField() 
 
 
     def __str__(self):
         return f"{'concertid: ',self.ConcertId} - {self.ConcertName}"
+    
+
+class Slider(models.Model):
+    ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    image = models.ImageField(upload_to='sliders/',null = True , blank = True)
+    url = models.URLField(blank=True)
+
+    def __str__(self):
+        return f"{'concertid: ',self.ConcertId} - {self.title}"
     
     
 class Sans(models.Model):
@@ -53,7 +64,7 @@ class Rows(models.Model):
     Rowid = models.AutoField(primary_key=True)
     RowNumber = models.IntegerField()
     RowPrice =  models.IntegerField(null=True,blank=True) 
-    RowArea = models.CharField(max_length=7, choices=Row_Area_CHOICES, blank=True)
+    RowArea = models.CharField(max_length=7, choices=Row_Area_CHOICES,default='ground')
     NumberofSeat = models.IntegerField(blank=True,null=True)
     SansId = models.ForeignKey(Sans, related_name='rows', on_delete=models.CASCADE)
     def __str__(self):

@@ -6,9 +6,16 @@ from django.db import models
 
 
 class Blog(models.Model):
+
+    BLOG_TYPE_CHOICES = [
+    ('Personal', 'Personal'),
+    ('Concert', 'Concert'),
+    ('Music', 'Music'),
+]
+    
     BlogTitle = models.CharField(max_length=50)
     BlogDescription = models.TextField()
-    BlogType = models.CharField(max_length=50)
+    BlogType = models.CharField(max_length=50,choices=BLOG_TYPE_CHOICES)
     BlogImage = models.ImageField(upload_to='blog/', null=True, blank=True)
     SeoTitle = models.CharField(max_length=50, blank=True, null=True)
     SeoDescription = models.CharField(max_length=50, blank=True, null=True)

@@ -1,12 +1,11 @@
 from rest_framework import serializers
-from home.models import Concert,Seat,Sans,Rows
+from home.models import Concert,Seat,Sans,Rows,Slider
 
 class RowsSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Concert
-        fields = "__all__"
-
+        model = Rows
+        fields = ['ConcertId', 'Rowid', 'RowNumber', 'RowPrice', 'RowArea', 'NumberofSeat', 'SansId']
 
 class SansSerializer(serializers.ModelSerializer):
     
@@ -14,6 +13,15 @@ class SansSerializer(serializers.ModelSerializer):
         model = Sans
         fields = "__all__"
 
+class SliderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Slider
+        fields = '__all__' 
+
+class CreateSliderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Slider
+        fields = ['ConcertId','title','description','image','url']
 
 class ConcertSerializer(serializers.ModelSerializer):
     Sans = SansSerializer(read_only=True, source='SansId')
@@ -61,7 +69,7 @@ class CreateSansSerializer(serializers.ModelSerializer):
 class GetRowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rows
-        fields = "__all__"
+        fields="__all__"
 
 
 class CreateSeatsSerializer(serializers.ModelSerializer):

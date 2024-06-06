@@ -5,10 +5,11 @@ from .models import Blog
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework.throttling import UserRateThrottle
 
 
 class BlogView(ListAPIView):
+    throttle_classes = [UserRateThrottle]
     
     queryset = Blog.objects.all()
     serializer_class = BlogSerializer
@@ -16,7 +17,7 @@ class BlogView(ListAPIView):
     
     
     def delete(self, request, id):
-        blog_obj = Blog.objects.get(b_id=id)
+        blog_obj = Blog.objects.get(id=id)
         blog_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -35,8 +36,7 @@ class AddChoiceAPIView(APIView):
             return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    
-    
+
 class DeleteBlogView(APIView):
     def delete(self, request, id):
         blog_obj = Blog.objects.get(b_id=id)

@@ -1,9 +1,10 @@
 from rest_framework.response import Response
-from .models import Concert,Seat,Sans,Rows,Payment,Ticket
+from .models import Concert,Seat,Sans,Rows,Payment,Ticket,Slider
 from accounts.models import Customer
 from rest_framework import generics
-from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer,UpdateSansSerializer
+from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,CreateSliderSerializer,SliderSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer,UpdateSansSerializer
 from rest_framework import status
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView,UpdateAPIView
 from django.utils import timezone
@@ -20,8 +21,10 @@ from accounts.views import IsAdminUser
 
 
 class ListConcertView(ListAPIView):
+    throttle_classes = [UserRateThrottle]
 
     def get(self, request):
+        sliders = Slider.objects.all()
         ip_response = requests.get('https://api.ipify.org/?format=json')
         ip_data = ip_response.json()
         myip = ip_data.get('ip')
@@ -32,18 +35,16 @@ class ListConcertView(ListAPIView):
         if not concerts.exists():
             concerts = Concert.objects.all()
 
-        # Serialize the filtered concerts
-        serializer = ConcertSerializer(concerts, many=True)
+        concert_serializer = ConcertSerializer(concerts, many=True)
+        slider_serializer = SliderSerializer(sliders, many=True)
 
-        return Response(serializer.data)
-    # def get(self, request):
-    #     res = requests.get('http://ip-api.com/json/46.182.32.18')  # Send request to IP API
-    #     location_data = res.json() # Extract JSON data from response
-    #     city = location_data.get('city')  # Extract city from location data
-    #     return Response({'city': city})
+        return Response({
+            'sliders': slider_serializer.data,
+            'concerts': concert_serializer.data
+            
+        })
 
     serializer_class = ConcertSerializer
-   # parser_classes = [MultiPartParser]
     def get_queryset(self):
         timeframe = self.request.query_params.get('timeframe')
 
@@ -65,44 +66,44 @@ class ListConcertView(ListAPIView):
     def get_last_of_this_week_concerts(self):
         today = timezone.now().date()
         last_of_this_week = today + timedelta(days=6 - today.weekday())
-        return Concert.objects.filter(co_date__lte=last_of_this_week)
+        return Concert.objects.filter(ConcertDate__lte=last_of_this_week)
 
     def get_this_week_concerts(self):
         today = timezone.now().date()
         end_of_this_week = today + timedelta(days=6 - today.weekday())
         start_of_this_week = end_of_this_week - timedelta(days=6)
-        return Concert.objects.filter(co_date__range=[start_of_this_week, end_of_this_week])
+        return Concert.objects.filter(ConcertDate__range=[start_of_this_week, end_of_this_week])
 
     def get_this_month_concerts(self):
         today = timezone.now().date()
         start_of_this_month = datetime(today.year, today.month, 1).date()
         end_of_this_month = datetime(today.year, today.month + 1, 1).date() - timedelta(days=1)
-        return Concert.objects.filter(co_date__range=[start_of_this_month, end_of_this_month])
+        return Concert.objects.filter(ConcertDate__range=[start_of_this_month, end_of_this_month])
 
     def get_next_week_concerts(self):
         today = timezone.now().date()
         start_of_next_week = today + timedelta(days=(7 - today.weekday()) + 1)
         end_of_next_week = start_of_next_week + timedelta(days=6)
-        return Concert.objects.filter(co_date__range=[start_of_next_week, end_of_next_week])
+        return Concert.objects.filter(ConcertDate__range=[start_of_next_week, end_of_next_week])
 
     def get_next_month_concerts(self):
         today = timezone.now().date()
         start_of_next_month = datetime(today.year, today.month + 1, 1).date()
         end_of_next_month = datetime(today.year, today.month + 2, 1).date() - timedelta(days=1)
-        return Concert.objects.filter(co_date__range=[start_of_next_month, end_of_next_month])
+        return Concert.objects.filter(ConcertDate__range=[start_of_next_month, end_of_next_month])
     
 
 class ConcertSearchView(ListAPIView):
+    throttle_classes = [UserRateThrottle]
 
     queryset = Concert.objects.all()
     serializer_class = ConcertSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['$ArtistName']
+    search_fields = ['$ArtistName', '$ConcertName'] 
 
 
      ##* for admin *##
 class ConcertAdminView(APIView):
-    permission_classes = [IsAdminUser]
 
 
     def post(self, request):
@@ -211,11 +212,40 @@ class ConcertAdminView(APIView):
         except Concert.DoesNotExist:
             return Response({"error": "کنسرت یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
     
+class SliderAdminView(APIView):
+    
+    def get(self, request ,Sliderid=None):
+        sliders = Slider.objects.all()
+        slider_serializer = SliderSerializer(sliders, many=True)
+        return Response(slider_serializer.data)
+    
+    def post(self, request,Sliderid=None):
+        serializer = CreateSliderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+    
+    def put(self, request, Sliderid):
+        slider = get_object_or_404(Slider, id=Sliderid)
+        serializer = SliderSerializer(slider, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
+    def delete(self, request, Sliderid):
+        slider = get_object_or_404(Slider, id=Sliderid)
+        slider.delete()
+        return Response(status=204)
+    
+    
+    
    
 
 #if seat status changed change its icon to other color it means change its icon#
 class ConcertDetail(APIView):
+    throttle_classes = [UserRateThrottle]
 
     def get(self,request,id):
         concerts = Concert.objects.filter(ConcertId=id)
@@ -307,83 +337,77 @@ def process_payment(self, payment):
         return True
 
 class RowsAdminView(APIView):
-    permission_classes = [IsAdminUser]
     def get(self, request, id=None):
         try:
             if id is not None:
-            
-                rows = Rows.objects.get(ConcertId=id)
-                serializer = GetRowSerializer(rows)
-                return Response(serializer.data)
+                rows = Rows.objects.filter(ConcertId=id)
+                if rows.exists():
+                    serializer = GetRowSerializer(rows, many=True)
+                    return Response(serializer.data)
+                else:
+                    return Response({"error": "کنسرت یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
             else:
                 all_rows = Rows.objects.all()
                 serializer = GetRowSerializer(all_rows, many=True)
                 return Response(serializer.data)
-        except Concert.DoesNotExist:
-                return Response({"error": "کنسرت یافت نشد"}, status=status.HTTP_404_NOT_FOUND) 
+        except Rows.DoesNotExist:
+            return Response({"error": "کنسرت یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
 
 
-    
 class SeatsAdminView(APIView):
     
-    permission_classes = [IsAdminUser]
     def post(self, request, id, Rowid):
-        data = request.data
+        data = request.data.copy()  # Make a mutable copy of request data
         data['ConcertId'] = id
         data['Rowid'] = Rowid
-
-        seatnumber = data['NumberofSeat']
-        seatprice = data['RowPrice']  # Assuming SeatPrice is provided in the request
-        rowarea = data['RowArea']  # Retrieve RowArea from the posted data
+        seatnumber = int(data.get('NumberofSeat'))  # Convert to integer
+        seatprice = data.get('RowPrice')  # Assuming SeatPrice is provided in the request
+        rowarea = data.get('RowArea')  # Retrieve RowArea from the posted data
 
         serializer = CreateSeatsSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         
-        
         seats = serializer.save()
-
-        # Update the NumberofSeat, RowPrice, and RowArea fields in the Rows model
+        if not seatnumber:
+            Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True, SeatStatus='Empty').delete()
+            return Response({"error": "تعداد صندلی نباید خالی باشد"}, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
             row = Rows.objects.get(ConcertId=id, Rowid=Rowid)
             row.NumberofSeat = seatnumber
-            row.RowPrice = seatprice  
-            row.RowArea = rowarea  
+            row.RowPrice = seatprice
+            row.RowArea = rowarea
             row.save()
         except Rows.DoesNotExist:
-            return Response({"error": " ردیف یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "ردیف یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Retrieve existing seat numbers
         existing_seat_numbers = set(
             Seat.objects.filter(ConcertId=id, Rowid=Rowid).values_list('SeatNumber', flat=True)
         )
 
-        # Create the seats if they do not already exist
         seats_to_create = [
             Seat(ConcertId=seats.ConcertId, Rowid=seats.Rowid, SeatNumber=i + 1, SeatPrice=seatprice)
             for i in range(seatnumber)
             if (i + 1) not in existing_seat_numbers
         ]
 
-        
         if seats_to_create:
             Seat.objects.bulk_create(seats_to_create)
-            
         else:
-           
-            Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True,SeatStatus='Empty').delete()
+            Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True, SeatStatus='Empty').delete()
             return Response({"error": "صندلی تکراری است"}, status=status.HTTP_400_BAD_REQUEST)
         
-        Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True,SeatStatus='Empty').delete()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        Seat.objects.filter(ConcertId=id, Rowid=Rowid, SeatNumber__isnull=True, SeatStatus='Empty').delete()
+        return Response("صندلی با موفقیت ایجاد شد", status=status.HTTP_201_CREATED)
+    
     def get(self, request, id, Rowid):
         try:
             # Retrieve seats for the given concert and row
             seats = Seat.objects.filter(ConcertId=id, Rowid=Rowid)
             serializer = SeatSerializer(seats, many=True)
             return Response(serializer.data)
-        except Rows.DoesNotExist:
-            return Response({"error": "  ردیف یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
+        except Rows.DoesNotExist or Concert.DoesNotExist:
+            return Response({"error": "ردیف یا کنسرت یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, id, Rowid, SeatId):
         data = request.data
@@ -421,7 +445,6 @@ class SeatsAdminView(APIView):
 
 
 class UpdateSeatView(generics.UpdateAPIView):
-    permission_classes = [IsAdminUser]
     queryset = Seat.objects.all()
     serializer_class = UpdateSeatSerializer
     lookup_field = 'SeatId'
@@ -465,7 +488,6 @@ class UpdateSeatView(generics.UpdateAPIView):
 
 
 class SansAdminView(APIView):
-    permission_classes = [IsAdminUser]
 
     def post(self, request, id):
         # Check if the concert exists
@@ -515,7 +537,6 @@ class SansAdminView(APIView):
             serializer = ConcertSerializer(all_concerts, many=True)
 
 class SansUpdateView(generics.UpdateAPIView):
-    permission_classes = [IsAdminUser]
     queryset = Sans.objects.all()
     serializer_class = UpdateSansSerializer
     lookup_field = 'SansId'

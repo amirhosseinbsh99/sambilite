@@ -9,7 +9,7 @@ class BlogSerializer(serializers.ModelSerializer):
         fields = "__all__"
 #ADMIN
 class CreateBlogSerializer(serializers.ModelSerializer):
-    b_image = serializers.ImageField(required=False)
+    BlogImage = serializers.ImageField(required=False)
 
     class Meta:
         model = Blog
