@@ -130,6 +130,7 @@ class Payment(models.Model):
     PaymentDate = jmodels.jDateField(auto_now_add=True)
     PaymentStatus = models.CharField(max_length=9, choices=PAYMENT_STATUS_CHOICES, default='Pending')
     CustomerId = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    Authority = models.CharField(max_length=50, blank=True, null=True)
 
     
     

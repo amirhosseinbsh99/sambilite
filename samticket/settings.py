@@ -29,10 +29,20 @@ INSTALLED_APPS = [
     'home',
     'accounts',
     'blog',
-    'django_jalali'
+    'django_jalali',
+    'zarinpal',
+    'corsheaders',
+
 ]
 
-# LOGIN_REDIRECT_URL = 'Dashboard'
+ZARINPAL_CALLBACK_URL: bool # the url user redirects to after transaction
+
+ZARINPAL_SIMULATION: bool # is transactions for test?
+
+ZARINPAL_MERCHANT_ID: str # merchant id from zarinpal (you may leave it blank if you set the simulation to True)
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -42,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 TIME_ZONE = 'Asia/Tehran'
