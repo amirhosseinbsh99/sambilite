@@ -1,136 +1,118 @@
 from django.db import models
 from accounts.models import Customer
-from django_jalali.db import models as jmodels
+
 
 class Concert(models.Model):
     CONCERT_STATUS_CHOICES = [
-        ('Soldout', 'Soldout'),
-        ('Active', 'Active'),
-        ('ComingSoon','ComingSoon')
+        ('soldout', 'Soldout'),
+        ('active', 'Active'),
+        ('comingsoon', 'ComingSoon')
     ]
     CONCERT_TYPE_CHOICES = [
-        ('music', 'music'),
-        ('show', 'show'),
-        ('cinema','cinema')
+        ('music', 'Music'),
+        ('show', 'Show'),
+        ('cinema', 'Cinema')
     ]
 
-    ConcertId = models.AutoField(primary_key=True)
-    ConcertName = models.CharField(max_length=100)
-    ConcertType = models.CharField(max_length=10,choices=CONCERT_TYPE_CHOICES,default='music')
-    ConcertDate = jmodels.jDateField(max_length=20)
-    ConcertAddress = models.CharField(max_length=250, blank=True)
-    ConcertImage = models.ImageField(upload_to = 'blog/' , null = True , blank = True)
-    ConcertLocation = models.CharField(max_length=40)
-    ArtistName = models.CharField(max_length=100)
-    ConcertStatus = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='Active')
-    NumberofRows = models.IntegerField() 
-    NumberofSans = models.IntegerField() 
-
+    concert_name = models.CharField(max_length=100)
+    concert_type = models.CharField(max_length=10, choices=CONCERT_TYPE_CHOICES, default='music')
+    concert_date = models.DateField()
+    concert_address = models.CharField(max_length=250, blank=True)
+    concert_image = models.ImageField(upload_to='blog/', null=True, blank=True)
+    concert_location = models.CharField(max_length=40)
+    artist_name = models.CharField(max_length=100)
+    concert_status = models.CharField(max_length=20, choices=CONCERT_STATUS_CHOICES, default='active')
+    number_of_rows = models.IntegerField()
+    number_of_sans = models.IntegerField()
 
     def __str__(self):
-        return f"{'concertid: ',self.ConcertId} - {self.ConcertName}"
-    
+        return f"concert: {self.concert} - {self.concert_name}"
+
 
 class Slider(models.Model):
-    ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField()
-    image = models.ImageField(upload_to='sliders/',null = True , blank = True)
+    image = models.ImageField(upload_to='sliders/', null=True, blank=True)
     url = models.URLField(blank=True)
 
     def __str__(self):
-        return f"{'concertid: ',self.ConcertId} - {self.title}"
-    
-    
+        return f"concert: {self.concert} - {self.title}"
+
+
 class Sans(models.Model):
     SANS_STATUS = [
-        ('Active', 'Active'),
-        ('Soldout', 'Soldout'),
+        ('active', 'Active'),
+        ('soldout', 'Soldout'),
     ]
-    SansId = models.AutoField(primary_key=True)
-    SansNumber = models.IntegerField(blank=True)
-    SansStatus = models.CharField(max_length=20, choices=SANS_STATUS, default='Active')
-    SansTime = models.TimeField(null=True, blank=True)
-    SansDate = jmodels.jDateField(null=True, blank=True)
-    ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
+
+    sans_number = models.IntegerField(blank=True)
+    sans_status = models.CharField(max_length=20, choices=SANS_STATUS, default='active')
+    sans_time = models.TimeField(null=True, blank=True)
+    sans_date = models.DateField(null=True, blank=True)
+    concert = models.ForeignKey(Concert, on_delete=models.CASCADE)
+
     def __str__(self):
-        return f"{'SansId: ',self.SansId} - {'sansnumber: ',self.SansNumber} - {self.ConcertId.ConcertName} - {'SansStatus: ',self.SansStatus}"
-    
-  
+        return f"sans_id: {self.sans_id} - sans_number: {self.sans_number} - {self.concert.concert_name} - sans_status: {self.sans_status}"
+
 
 class Rows(models.Model):
-    Row_Area_CHOICES = [
-        ('VIP', 'VIP'),
-        ('balcony', 'balcony'),
-        ('ground', 'ground')
-
+    ROW_AREA_CHOICES = [
+        ('vip', 'VIP'),
+        ('balcony', 'Balcony'),
+        ('ground', 'Ground')
     ]
 
-    ConcertId = models.ForeignKey(Concert, on_delete=models.CASCADE)
-    Rowid = models.AutoField(primary_key=True)
-    RowNumber = models.IntegerField()
-    RowPrice =  models.IntegerField(null=True,blank=True) 
-    RowArea = models.CharField(max_length=7, choices=Row_Area_CHOICES,default='ground')
-    NumberofSeat = models.IntegerField(blank=True,null=True)
-    SansId = models.ForeignKey(Sans, related_name='rows', on_delete=models.CASCADE)
+    concert = models.ForeignKey(Concert, on_delete=models.CASCADE)
+    row_number = models.IntegerField()
+    row_price = models.IntegerField(null=True, blank=True)
+    row_area = models.CharField(max_length=7, choices=ROW_AREA_CHOICES, default='ground')
+    number_of_seat = models.IntegerField(blank=True, null=True)
+    sans = models.ForeignKey(Sans, related_name='rows', on_delete=models.CASCADE)
+
     def __str__(self):
-        return f"{'rowid: ',self.Rowid,'rowNumber: ',self.RowNumber} - {self.ConcertId.ConcertName} - {self.Rowid}"
-    
+        return f"row_number: {self.row_number} - {self.concert.concert_name}"
+
 
 class Seat(models.Model):
     SEAT_STATUS_CHOICES = [
-        ('Empty', 'Empty'),
-        ('Reserved', 'Reserved'),
-        ('Reserving', 'Reserving'),
-        ('not_buyable','not_buyable'),
-        ('selected','selected'),
-        ('space','space')
+        ('empty', 'Empty'),
+        ('reserved', 'Reserved'),
+        ('reserving', 'Reserving'),
+        ('not_buyable', 'Not Buyable'),
+        ('selected', 'Selected'),
+        ('space', 'Space')
     ]
-    
-    ConcertId = models.ForeignKey(Concert,related_name='Concert_name', on_delete=models.CASCADE)
-    Rowid = models.ForeignKey(Rows,related_name='Rows_Number', on_delete=models.CASCADE)
-    SeatId = models.AutoField(primary_key=True)
-    SeatNumber = models.IntegerField(blank=True,null=True)
-    SeatStatus = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='Empty')
-    SeatPrice = models.IntegerField(null=True,blank=True) 
-   
-   
+
+    concert = models.ForeignKey(Concert, related_name='seats', on_delete=models.CASCADE)
+    row = models.ForeignKey(Rows, related_name='rows_number', on_delete=models.CASCADE)
+    seat_number = models.IntegerField(blank=True, null=True)
+    seat_status = models.CharField(max_length=20, choices=SEAT_STATUS_CHOICES, default='empty')
+    seat_price = models.IntegerField(null=True, blank=True)
+
     def select_seat(self):
-        if self.SeatStatus == 'Empty':
-            self.SeatStatus = 'selected'
+        if self.seat_status == 'empty':
+            self.seat_status = 'selected'
             self.save()
             return True
         return False
 
-
-
-
-
-class Ticket(models.Model):
-    TicketId = models.AutoField(primary_key=True)
-    Ticket_Serial = models.CharField(max_length=15)
-    SansId = models.OneToOneField(Sans, on_delete=models.CASCADE)
-    SeatId = models.OneToOneField(Seat, on_delete=models.CASCADE)
-    ConcertId = models.OneToOneField(Concert, on_delete=models.CASCADE)
-
-
-
-class Payment(models.Model):
+class Order(models.Model):
     PAYMENT_STATUS_CHOICES = [
-        ('Pending', 'Pending'),
-        ('Completed', 'Completed'),
-        ('Failed', 'Failed'),
-        ('canceled','canceled')
-    
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
     ]
 
-    PaymentId = models.AutoField(primary_key=True)
-    TicketId = models.ForeignKey(Ticket, on_delete=models.CASCADE)
-    SeatId = models.ForeignKey(Seat, on_delete=models.CASCADE)
-    PaymentDate = jmodels.jDateField(auto_now_add=True)
-    PaymentStatus = models.CharField(max_length=9, choices=PAYMENT_STATUS_CHOICES, default='Pending')
-    CustomerId = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    Authority = models.CharField(max_length=50, blank=True, null=True)
+    
+    seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
+    ref_id = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    payment_status = models.CharField(max_length=9, choices=PAYMENT_STATUS_CHOICES)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    authority = models.CharField(max_length=50, blank=True, null=True)
 
-    
-    
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    seat = models.OneToOneField(Seat, on_delete=models.CASCADE)
+    concert = models.OneToOneField(Concert, on_delete=models.CASCADE)

@@ -8,6 +8,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import BasePermission
 
+
 # CHANGE TO KHARID BILITE
 class CustomerLoginAPIView(APIView):
     def post(self, request):

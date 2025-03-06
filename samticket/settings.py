@@ -30,8 +30,8 @@ INSTALLED_APPS = [
     'accounts',
     'blog',
     'django_jalali',
-    'zarinpal',
     'corsheaders',
+    
 
 ]
 
@@ -92,13 +92,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'samticket.wsgi.application'
 
 
-# Database
+# ese
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'data' / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'HamAva',
+        'USER': 'postgres',
+        'PASSWORD': '13821384',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 AUTH_USER_MODEL = 'accounts.Customer'

@@ -6,8 +6,8 @@ app_name = 'account'
 urlpatterns = [
     path('login/',CustomerLoginAPIView.as_view() ,name='CustomerLogin' ),
         
-                             #after front given ###
-    path('Customer/', CustomerView.as_view(), name='CustomerView'),
-    path('Customer/<int:id>/', CustomerView.as_view(), name='EditCustomerView'),
-    path('Customer/Create/', CreateCustomerView.as_view(), name='CreateCustomerView')
+                            
+    path('customer/', CustomerView.as_view(), name='CustomerView'),
+    path('customer/<int:id>/', CustomerView.as_view(), name='EditCustomerView'),
+    path('customer/Create/', CreateCustomerView.as_view(), name='CreateCustomerView')
 ]

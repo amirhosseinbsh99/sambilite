@@ -1,9 +1,8 @@
 from rest_framework.response import Response
-from .models import Concert,Seat,Sans,Rows,Payment,Ticket,Slider
+from .models import Concert,Seat,Sans,Rows,Order,OrderItem,Slider
 from rest_framework.decorators import api_view, permission_classes
 from accounts.models import Customer
 from rest_framework import generics
-from zarinpal_checkouts import ZarinPal
 from .serializers import ConcertSerializer,CreateConcertSerializer,SeatSerializer,UpdateSeatSerializer,CreateSansSerializer,CreateSliderSerializer,SliderSerializer,CreateSeatsSerializer,SansSerializer,GetRowSerializer,UpdateSansSerializer
 from rest_framework import status
 from rest_framework.throttling import UserRateThrottle
@@ -292,7 +291,7 @@ class ConcertDetail(APIView):
 
             # Process payment (assuming a mock payment processing here)
             payment_status = 'Pending'
-            payment = Payment.objects.create(
+            payment = Order.objects.create(
                 TicketId=None,  # To be set later
                 SeatId=seat,
                 PaymentStatus=payment_status,
@@ -305,7 +304,7 @@ class ConcertDetail(APIView):
                 payment.save()
 
                 # Create ticket
-                ticket = Ticket.objects.create(
+                ticket = OrderItem.objects.create(
                     Ticket_Serial='some_serial',  # Generate a unique serial here
                     SansId=seat.SansId,
                     SeatId=seat,
@@ -570,59 +569,3 @@ class SansUpdateView(generics.UpdateAPIView):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def initiate_payment(request):
-    try:
-        ticket_id = request.data.get('ticket_id')
-        ticket = Ticket.objects.get(pk=ticket_id)
-        amount = ticket.SeatId.SeatPrice * 10  # Zarinpal uses Toman (10 Rials)
-        description = f"Payment for ticket {ticket.Ticket_Serial}"
-        customer = request.user
-        email = customer.email
-        mobile = customer.CustomerPhoneNumber
-        callback_url = request.build_absolute_uri('/verify-payment/')
-
-        zarinpal = ZarinPal(settings.ZARINPAL_MERCHANT_ID, sandbox=settings.ZARINPAL_SANDBOX)
-        result = zarinpal.request_payment(amount, callback_url, description, email, mobile)
-
-        if result.Status == 100:
-            payment = Payment.objects.create(
-                TicketId=ticket,
-                SeatId=ticket.SeatId,
-                CustomerId=customer,
-                PaymentStatus='Pending',
-                Authority=result.Authority
-            )
-            return Response({'url': result.url}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': result.Message}, status=status.HTTP_400_BAD_REQUEST)
-    except Ticket.DoesNotExist:
-        return Response({'message': 'Ticket not found'}, status=status.HTTP_404_NOT_FOUND)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def verify_payment(request):
-    try:
-        authority = request.GET.get('Authority')
-        status = request.GET.get('Status')
-
-        payment = Payment.objects.get(Authority=authority)
-        if status == 'OK':
-            zarinpal = ZarinPal(settings.ZARINPAL_MERCHANT_ID, sandbox=settings.ZARINPAL_SANDBOX)
-            result = zarinpal.verify_payment(authority, payment.TicketId.SeatId.SeatPrice * 10)
-
-            if result.Status == 100:
-                payment.PaymentStatus = 'Completed'
-                payment.save()
-                return Response({'ref_id': result.RefID}, status=status.HTTP_200_OK)
-            else:
-                payment.PaymentStatus = 'Failed'
-                payment.save()
-                return Response({'message': result.Message}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            payment.PaymentStatus = 'canceled'
-            payment.save()
-            return Response({'message': 'Payment was canceled by the user.'}, status=status.HTTP_400_BAD_REQUEST)
-    except Payment.DoesNotExist:
-        return Response({'message': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
